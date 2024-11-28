@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.widgets import TextBox
-from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.widgets import Button, TextBox, RadioButtons
 
 def relu(x):
     return np.maximum(0, x)
@@ -12,28 +11,26 @@ def relu_network(x, weights1, biases1, weights2, biases2):
     final_input = np.dot(hidden_output, weights2) + biases2
     return relu(final_input)
 
-# Generate input data
 x1 = np.arange(-10, 11, 1)
 x2 = np.arange(-10, 11, 1)
 x1_grid, x2_grid = np.meshgrid(x1, x2)
 inputs = np.c_[x1_grid.ravel(), x2_grid.ravel()]
 
-# Initialize weights and biases for the layers
-initial_weights1 = np.zeros((2, 4))
-initial_biases1 = np.zeros(4)
-initial_weights2 = np.zeros((4, 1))
-initial_biases2 = np.zeros(1)
+weights1 = np.zeros((2, 4))
+biases1 = np.zeros(4)
+weights2 = np.zeros((4, 1))
+biases2 = np.zeros(1)
+
+parameter_names = [f"IW{i+1}" for i in range(8)] + [f"IB{i+1}" for i in range(4)] + \
+                  [f"HW{i+1}" for i in range(4)] + ["OB"]
+
+selected_param = None
 
 fig = plt.figure(figsize=(14, 8))
 ax = fig.add_subplot(111, projection='3d')
 
-# Update plot based on weights and biases
-def update_plot(weights1, biases1, weights2, biases2):
-    weights1 = np.array(weights1).reshape(2, 4)
-    biases1 = np.array(biases1).reshape(4)
-    weights2 = np.array(weights2).reshape(4, 1)
-    biases2 = np.array(biases2).reshape(1)
-
+def update_plot():
+    global weights1, biases1, weights2, biases2
     output = relu_network(inputs, weights1, biases1, weights2, biases2).reshape(x1_grid.shape)
     ax.clear()
     ax.plot_surface(x1_grid, x2_grid, output, cmap="viridis", alpha=0.8)
@@ -41,35 +38,59 @@ def update_plot(weights1, biases1, weights2, biases2):
     ax.set_ylabel("x2")
     ax.set_zlabel("Output")
     ax.set_zlim(0, 20)
+    update_values_display()
     plt.draw()
 
-def parse_textbox_values():
-    # Parse values from text boxes for each weight and bias
-    weights1 = [float(w1_tb[i].text) for i in range(8)]
-    biases1 = [float(b1_tb[i].text) for i in range(4)]
-    weights2 = [float(w2_tb[i].text) for i in range(4)]
-    biases2 = [float(b2_tb.text)]
-    update_plot(weights1, biases1, weights2, biases2)
+def apply_change(event):
+    global weights1, biases1, weights2, biases2
+    if selected_param is None:
+        print("No parameter selected.")
+        return
+    try:
+        new_value = float(textbox_value.text)
+    except ValueError:
+        print("Invalid input. Please enter a numeric value.")
+        return
+    if selected_param.startswith("IW"):
+        index = int(selected_param[2:]) - 1
+        weights1.flat[index] = new_value
+    elif selected_param.startswith("IB"):
+        index = int(selected_param[2:]) - 1
+        biases1[index] = new_value
+    elif selected_param.startswith("HW"):
+        index = int(selected_param[2:]) - 1
+        weights2.flat[index] = new_value
+    elif selected_param == "OB":
+        biases2[0] = new_value
+    update_plot()
 
-# Initial plot update
-update_plot(initial_weights1.flatten(), initial_biases1, initial_weights2.flatten(), initial_biases2)
+def radio_callback(label):
+    global selected_param
+    selected_param = label
 
-# Define positions for text boxes
-textbox_positions = {
-    "w1": [(0.05 + 0.1 * i, 0.9, 0.05, 0.03) for i in range(8)],
-    "b1": [(0.05 + 0.1 * i, 0.85, 0.05, 0.03) for i in range(4)],
-    "w2": [(0.05 + 0.1 * i, 0.8, 0.05, 0.03) for i in range(4)],
-    "b2": [(0.05, 0.75, 0.05, 0.03)],
-}
+def update_values_display():
+    global weights1, biases1, weights2, biases2
+    values = []
+    values += [f"{name}: {value:.2f}" for name, value in zip(parameter_names[:8], weights1.flatten())]
+    values += [f"{name}: {value:.2f}" for name, value in zip(parameter_names[8:12], biases1)]
+    values += [f"{name}: {value:.2f}" for name, value in zip(parameter_names[12:16], weights2.flatten())]
+    values.append(f"{parameter_names[16]}: {biases2[0]:.2f}")
+    values_display.set_val("\n".join(values))
 
-# Create text boxes for weights and biases
-w1_tb = [TextBox(plt.axes(pos), f"w1_{i}", initial=str(0)) for i, pos in enumerate(textbox_positions["w1"])]
-b1_tb = [TextBox(plt.axes(pos), f"b1_{i}", initial=str(0)) for i, pos in enumerate(textbox_positions["b1"])]
-w2_tb = [TextBox(plt.axes(pos), f"w2_{i}", initial=str(0)) for i, pos in enumerate(textbox_positions["w2"])]
-b2_tb = TextBox(plt.axes(textbox_positions["b2"][0]), "b2", initial=str(0))
+radio_ax = plt.axes([0.02, 0.2, 0.2, 0.7], facecolor='lightgrey')
+radio_buttons = RadioButtons(radio_ax, parameter_names)
+radio_buttons.on_clicked(radio_callback)
 
-# Connect text boxes to the update function
-for tb in w1_tb + b1_tb + w2_tb + [b2_tb]:
-    tb.on_submit(lambda _: parse_textbox_values())
+textbox_ax = plt.axes([0.3, 0.9, 0.2, 0.05])
+textbox_value = TextBox(textbox_ax, "Value", initial="0")
 
+button_ax = plt.axes([0.55, 0.9, 0.1, 0.05])
+apply_button = Button(button_ax, "Apply")
+apply_button.on_clicked(apply_change)
+
+values_display_ax = plt.axes([0.8, 0.2, 0.18, 0.7], facecolor='white')
+values_display = TextBox(values_display_ax, "Weights & Biases", initial="")
+values_display.set_active(False)
+
+update_plot()
 plt.show()
