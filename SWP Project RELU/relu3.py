@@ -19,6 +19,9 @@ biases1 = np.zeros(4)
 weights2 = np.zeros((4, 1))
 biases2 = np.zeros(1)
 
+print(biases2)
+
+
 parameter_names = [f"IW{i+1}" for i in range(8)] + [f"IB{i+1}" for i in range(4)] + \
                   [f"HW{i+1}" for i in range(4)] + ["OB"]
 

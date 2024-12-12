@@ -1,11 +1,15 @@
 import tkinter as tk
-from tkinter import ttk # enables drop-down lists
+from tkinter import ttk#enables drop-down lists
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)#for adding plt in tkinter
 import matplotlib.pyplot as plt
 import numpy as np
 import neural_net as nn
 from tkinter import *
 import customtkinter
+
+layer_sizes = [2,4,1]
+params = [f"IW{i+1}" for i in range(layer_sizes[0]*layer_sizes[1])] + [f"IB{i+1}" for i in range(layer_sizes[1])] + \
+[f"HW{i+1}" for i in range(layer_sizes[1])] + ["OB"]
 
 def draw_architecture():
   network = nn.DrawNN(layer_sizes,weights_list=weights_list, biases=biases)
@@ -20,46 +24,104 @@ frame = tk.Frame(root)
 # label.pack()
 frame.pack()
 
-layer_sizes = [3,5,1]
+
 
 plt.ion()
 fig = plt.Figure()
+
+gs = fig.add_gridspec(1, 2, width_ratios=[3, 1])  # Adjust width ratios
+
 results = fig.add_subplot(121, projection='3d')
+
 canvas = FigureCanvasTkAgg(fig, master=root)#allows using matplotlib plot in tkinter
 canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 toolbar = NavigationToolbar2Tk(canvas, root, pack_toolbar=False)
 toolbar.update()
 toolbar.pack(side=tk.BOTTOM, fill=tk.X)
 
+def display_weights():
+  global fig,params,weights_list,weights
+  params_without_biases = [param for param in params if not param.startswith('IB') and not param == 'OB']
+  if len(fig.axes) > 1:
+      fig.delaxes(fig.axes[1])
+  bar = fig.add_subplot(gs[1])
+  y_pos = np.arange(len(params_without_biases))
+  bar.barh(y_pos, np.array(weights), align='center')
+  bar.set_yticks(y_pos, labels=params_without_biases)
+  bar.invert_yaxis()
+  bar.set_xlim(-10, 10)
+  bar.set_xlabel('Weights')
+  bar.set_title('Parameter Weights Visualization')
+  fig.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
+  canvas.draw()
+
+def display_biases():
+  global fig,params,flattened_biases
+  biasparams = [param for param in params if param.startswith('IB') or param == 'OB']
+  if len(fig.axes) > 1:
+      fig.delaxes(fig.axes[1])
+  bar = fig.add_subplot(gs[1])
+  y_pos = np.arange(len(biasparams))
+  bar.barh(y_pos, np.array(flattened_biases), align='center')
+  bar.set_yticks(y_pos, labels=biasparams)
+  bar.invert_yaxis()
+  bar.set_xlim(-10, 10)
+  bar.set_xlabel('Biases')
+  bar.set_title('Parameter Biases Visualization')
+  fig.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
+  canvas.draw()
+
+
+
 # Visualize Architecure Button
 vizb = tk.Button(root, text='Draw Architecture', bd='5',command=draw_architecture)
-vizb.place(relx = 0.901, rely = 0.88)
+vizb.place(relx = 0.1, rely = 0.1)
 
 #param dropdown
-params = [f"IW{i+1}" for i in range(layer_sizes[0]*layer_sizes[1])] + [f"IB{i+1}" for i in range(layer_sizes[1])] + \
-                  [f"HW{i+1}" for i in range(layer_sizes[1])] + ["OB"]
+
 paramdd = ttk.Combobox(state="readonly", values=params)
 paramdd.set(params[0])
 paramdd.place(relx = 0.1, rely = 0.89)
 param_select_label = tk.Label(root, text="Select Weight/Bias to Edit")
 param_select_label.place(relx = 0.1, rely = 0.87)
 
+def update_params():
+    global weights,biases,flattened_biases,weights_list
+    selected_param = paramdd.get()
+    new_value = slider.get()
+    if selected_param.startswith('IW'):
+      weights[int(selected_param[2:])-1] = new_value
+      weights_list = construct_weights_from_values(weights)
+      display_weights()
+
+    elif selected_param.startswith('HW'):
+      weights[int(selected_param[2:]) + layer_sizes[0]*layer_sizes[1]-1] = new_value  
+      weights_list = construct_weights_from_values(weights)
+      display_weights()
+
+    elif selected_param.startswith('IB'):
+      biases[layer_sizes[1]][int(selected_param[2:])-1] = new_value
+      flattened_biases = np.array(biases[layer_sizes[1]] + biases[layer_sizes[2]])
+      display_biases()
+
+    else:
+      biases[layer_sizes[2]][0] = new_value 
+      flattened_biases = np.array(biases[layer_sizes[1]] + biases[layer_sizes[2]])
+      display_biases()
+    update_output()
+
 #slider
 def slider_event(value):
     slider_val_label.configure(text = "{:.1f}".format(value))
 
 slider_val_label = tk.Label(root, text="")
-slider_val_label.place(relx = 0.25, rely = 0.89)    
+slider_val_label.place(relx = 0.25, rely = 0.9)    
 
 slider = customtkinter.CTkSlider(master=root, from_=-10, to=10,command = slider_event,fg_color = 'blue')
 slider.set(0)
 slider.place(relx=0.2, rely=0.88)
-
-
-
-
-
-
+sliderconfirm_button = tk.Button(root, text='Update Weight/Bias Value', bd='5',command=update_params)
+sliderconfirm_button.place(relx = 0.32, rely = 0.88)
 
 def construct_weights_from_values(weight_values, input_nodes=layer_sizes[0], hidden_nodes=layer_sizes[1], output_nodes=layer_sizes[2]):
     num_input_to_hidden = input_nodes * hidden_nodes 
@@ -69,27 +131,60 @@ def construct_weights_from_values(weight_values, input_nodes=layer_sizes[0], hid
     weights_list = [input_to_hidden_weights, hidden_to_output_weights]
     return weights_list
 
-weights = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,13,14,15,16,17,18,19,20]
+weights = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 weights_list = construct_weights_from_values(weights)
 biases = {
-    layer_sizes[1]: [0.3, -0.1, 0.4, 0.2,0.5],  # Biases for the hidden layer (4 neurons)
-    layer_sizes[2]: [0.1]  # Bias for the output layer (1 neuron)
+    layer_sizes[1]: [0, 0, 0,0],  # Biases for the hidden layer
+    layer_sizes[2]: [5]  # Bias for the output layer
 }
+flattened_biases = np.array(biases[layer_sizes[1]] + biases[layer_sizes[2]])
 
 
 
 
 
+def relu(x):
+    return np.maximum(0, x)
+def relu_network(x, weights1, biases1, weights2, biases2):#calculate output
+    hidden_input = np.dot(x, weights1) + biases1
+    hidden_output = relu(hidden_input)
+    final_input = np.dot(hidden_output, weights2) + biases2
+    return relu(final_input)
 
 
+x1 = np.arange(-10, 11, 1)
+x2 = np.arange(-10, 11, 1)
+x1_grid, x2_grid = np.meshgrid(x1, x2)
+inputs = np.c_[x1_grid.ravel(), x2_grid.ravel()]
 
 
+def update_output():
+  if len(fig.axes) > 1:
+      fig.delaxes(fig.axes[0])
+  results = fig.add_subplot(121, projection='3d')
+  global layer_sizes
+  weights1 = np.zeros((layer_sizes[0], layer_sizes[1]))
+  biases1 = np.zeros(layer_sizes[1])
+  weights2 = np.zeros((layer_sizes[1], 1))
+  biases2 = np.zeros(1)
 
-
-
-
-
-
+  for x in range(layer_sizes[0]*layer_sizes[1]):#0,1,2,3,4,5,6,7
+     weights1[int(x/layer_sizes[1])][x if x < 4 else x-4] = weights[x]
+  
+  for x in range(layer_sizes[1]):#8,9,10,11
+     weights2[x][0] = weights[x+layer_sizes[0]*layer_sizes[1]]
+  
+  for x in range(layer_sizes[1]):
+     biases1[x] = biases[layer_sizes[1]][x]
+  
+  biases2[0] = biases[layer_sizes[2]][0]
+  output = relu_network(inputs, weights1, biases1, weights2, biases2).reshape(x1_grid.shape)
+  results.plot_surface(x1_grid, x2_grid, output, cmap="viridis", alpha=0.8)
+  results.set_xlabel("x1")
+  results.set_ylabel("x2")
+  results.set_zlabel("Output")
+  results.set_zlim(0, 20)
+  canvas.draw()
 
 
 if __name__ == '__main__':
