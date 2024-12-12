@@ -4,6 +4,8 @@ from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationTool
 import matplotlib.pyplot as plt
 import numpy as np
 import neural_net as nn
+from tkinter import *
+import customtkinter
 
 def draw_architecture():
   network = nn.DrawNN(layer_sizes,weights_list=weights_list, biases=biases)
@@ -13,9 +15,9 @@ root = tk.Tk()
 root.geometry("1920x1080")
 root.title("Relu Visualizer")
 frame = tk.Frame(root)
-label = tk.Label(text="Result               +       Network Structure!")
-label.config(font=("Courier", 32))
-label.pack()
+# label = tk.Label(text="Result               +       Network Structure!")
+# label.config(font=("Courier", 32))
+# label.pack()
 frame.pack()
 
 layer_sizes = [3,5,1]
@@ -38,7 +40,25 @@ params = [f"IW{i+1}" for i in range(layer_sizes[0]*layer_sizes[1])] + [f"IB{i+1}
                   [f"HW{i+1}" for i in range(layer_sizes[1])] + ["OB"]
 paramdd = ttk.Combobox(state="readonly", values=params)
 paramdd.set(params[0])
-paramdd.place(relx = 0.25, rely = 0.89)
+paramdd.place(relx = 0.1, rely = 0.89)
+param_select_label = tk.Label(root, text="Select Weight/Bias to Edit")
+param_select_label.place(relx = 0.1, rely = 0.87)
+
+#slider
+def slider_event(value):
+    slider_val_label.configure(text = "{:.1f}".format(value))
+
+slider_val_label = tk.Label(root, text="")
+slider_val_label.place(relx = 0.25, rely = 0.89)    
+
+slider = customtkinter.CTkSlider(master=root, from_=-10, to=10,command = slider_event,fg_color = 'blue')
+slider.set(0)
+slider.place(relx=0.2, rely=0.88)
+
+
+
+
+
 
 
 def construct_weights_from_values(weight_values, input_nodes=layer_sizes[0], hidden_nodes=layer_sizes[1], output_nodes=layer_sizes[2]):
