@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk#enables drop-down lists
+from tkinter import messagebox 
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)#for adding plt in tkinter
 import matplotlib.pyplot as plt
 import numpy as np
@@ -94,6 +95,9 @@ def update_hidden_layer_neurons():
   params = [f"IW{i+1}" for i in range(layer_sizes[0]*layer_sizes[1])] + [f"IB{i+1}" for i in range(layer_sizes[1])] + \
 [f"HW{i+1}" for i in range(layer_sizes[1])] + ["OB"]
   paramdd.configure(values=params)
+  display_weights()
+  update_output()
+  messagebox.showinfo("Information", "All Weights and Biases have been reset to 0 for the new architecture.") 
 
 #Hidden Layer Neurons Selection
 
