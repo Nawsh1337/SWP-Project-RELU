@@ -12,6 +12,10 @@ params = [f"IW{i+1}" for i in range(layer_sizes[0]*layer_sizes[1])] + [f"IB{i+1}
 [f"HW{i+1}" for i in range(layer_sizes[1])] + ["OB"]
 
 def draw_architecture():
+  # print(layer_sizes)
+  # print(weights)
+  # print(weights_list)
+  global layer_sizes,weights_list
   network = nn.DrawNN(layer_sizes,weights_list=weights_list, biases=biases)
   network.draw()
 
@@ -62,6 +66,8 @@ def display_biases():
       fig.delaxes(fig.axes[1])
   bar = fig.add_subplot(gs[1])
   y_pos = np.arange(len(biasparams))
+  # print(y_pos)
+  # print(np.array(flattened_biases))
   bar.barh(y_pos, np.array(flattened_biases), align='center')
   bar.set_yticks(y_pos, labels=biasparams)
   bar.invert_yaxis()
@@ -71,6 +77,34 @@ def display_biases():
   fig.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
   canvas.draw()
 
+
+def update_hidden_layer_neurons():
+  new_hidden_neurons = hiddendd.get()
+  global layer_sizes,weights,weights_list,biases,flattened_biases,params
+  layer_sizes[1] = int(new_hidden_neurons)
+  weights = np.zeros(layer_sizes[0]*layer_sizes[1]+layer_sizes[1])
+  print(weights_list)
+  weights_list = construct_weights_from_values(weights,layer_sizes[0],layer_sizes[1],layer_sizes[2])
+  print(weights_list)
+  biases = {
+    layer_sizes[1]: np.zeros(layer_sizes[1]),  # Biases for the hidden layer
+    layer_sizes[2]: np.zeros(1)  # Bias for the output layer
+  }
+  flattened_biases = np.append(biases[layer_sizes[1]],biases[layer_sizes[2]])
+  params = [f"IW{i+1}" for i in range(layer_sizes[0]*layer_sizes[1])] + [f"IB{i+1}" for i in range(layer_sizes[1])] + \
+[f"HW{i+1}" for i in range(layer_sizes[1])] + ["OB"]
+  paramdd.configure(values=params)
+
+#Hidden Layer Neurons Selection
+
+hiddendd = ttk.Combobox(state="readonly", values=[x+1 for x in range(10)])
+hiddendd.set(layer_sizes[1])
+hiddendd.place(relx = 0.6, rely = 0.89)
+hiddendd_label = tk.Label(root, text="Hidden Layer Neurons")
+hiddendd_label.place(relx = 0.6, rely = 0.87)
+# Hidden neurons set Button
+hiddenset_button = tk.Button(root, text='Apply Changes', bd='5',command=update_hidden_layer_neurons)
+hiddenset_button.place(relx = 0.7, rely = 0.87)
 
 
 # Visualize Architecure Button
@@ -86,27 +120,27 @@ param_select_label = tk.Label(root, text="Select Weight/Bias to Edit")
 param_select_label.place(relx = 0.1, rely = 0.87)
 
 def update_params():
-    global weights,biases,flattened_biases,weights_list
+    global weights,biases,flattened_biases,weights_list,layer_sizes
     selected_param = paramdd.get()
     new_value = slider.get()
     if selected_param.startswith('IW'):
       weights[int(selected_param[2:])-1] = new_value
-      weights_list = construct_weights_from_values(weights)
+      weights_list = construct_weights_from_values(weights,layer_sizes[0],layer_sizes[1],layer_sizes[2])
       display_weights()
 
     elif selected_param.startswith('HW'):
       weights[int(selected_param[2:]) + layer_sizes[0]*layer_sizes[1]-1] = new_value  
-      weights_list = construct_weights_from_values(weights)
+      weights_list = construct_weights_from_values(weights,layer_sizes[0],layer_sizes[1],layer_sizes[2])
       display_weights()
 
     elif selected_param.startswith('IB'):
       biases[layer_sizes[1]][int(selected_param[2:])-1] = new_value
-      flattened_biases = np.array(biases[layer_sizes[1]] + biases[layer_sizes[2]])
+      flattened_biases = np.append(biases[layer_sizes[1]],biases[layer_sizes[2]])
       display_biases()
 
     else:
       biases[layer_sizes[2]][0] = new_value 
-      flattened_biases = np.array(biases[layer_sizes[1]] + biases[layer_sizes[2]])
+      flattened_biases = np.append(biases[layer_sizes[1]],biases[layer_sizes[2]])
       display_biases()
     update_output()
 
@@ -131,14 +165,14 @@ def construct_weights_from_values(weight_values, input_nodes=layer_sizes[0], hid
     weights_list = [input_to_hidden_weights, hidden_to_output_weights]
     return weights_list
 
-weights = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+weights = np.zeros(layer_sizes[0]*layer_sizes[1]+layer_sizes[1])
 weights_list = construct_weights_from_values(weights)
 biases = {
-    layer_sizes[1]: [0, 0, 0,0],  # Biases for the hidden layer
-    layer_sizes[2]: [5]  # Bias for the output layer
+    layer_sizes[1]: np.zeros(layer_sizes[1]),  # Biases for the hidden layer
+    layer_sizes[2]: np.zeros(1)  # Bias for the output layer
 }
-flattened_biases = np.array(biases[layer_sizes[1]] + biases[layer_sizes[2]])
-
+flattened_biases = np.append(biases[layer_sizes[1]],biases[layer_sizes[2]])
+# print(flattened_biases)
 
 
 
@@ -169,7 +203,7 @@ def update_output():
   biases2 = np.zeros(1)
 
   for x in range(layer_sizes[0]*layer_sizes[1]):#0,1,2,3,4,5,6,7
-     weights1[int(x/layer_sizes[1])][x if x < 4 else x-4] = weights[x]
+     weights1[int(x/layer_sizes[1])][x if x < layer_sizes[1] else x-layer_sizes[1]] = weights[x]
   
   for x in range(layer_sizes[1]):#8,9,10,11
      weights2[x][0] = weights[x+layer_sizes[0]*layer_sizes[1]]
@@ -185,6 +219,7 @@ def update_output():
   results.set_zlabel("Output")
   results.set_zlim(0, 20)
   canvas.draw()
+
 
 
 if __name__ == '__main__':
