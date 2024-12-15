@@ -55,6 +55,7 @@ def display_weights():
   bar.set_yticks(y_pos, labels=params_without_biases)
   bar.invert_yaxis()
   bar.set_xlim(-10, 10)
+  bar.axvline(x=0, color='red', linestyle='--', linewidth=1)
   bar.set_xlabel('Weights')
   bar.set_title('Parameter Weights Visualization')
   fig.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
@@ -73,6 +74,7 @@ def display_biases():
   bar.set_yticks(y_pos, labels=biasparams)
   bar.invert_yaxis()
   bar.set_xlim(-10, 10)
+  bar.axvline(x=0, color='red', linestyle='--', linewidth=1)
   bar.set_xlabel('Biases')
   bar.set_title('Parameter Biases Visualization')
   fig.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
@@ -99,28 +101,41 @@ def update_hidden_layer_neurons():
   update_output()
   messagebox.showinfo("Information", "All Weights and Biases have been reset to 0 for the new architecture.") 
 
+
+def on_enter(e):
+  e.widget['background'] = 'white'
+
+def on_leave(e):
+  global orig_color
+  e.widget['background'] = orig_color
+
 #Hidden Layer Neurons Selection
 
 hiddendd = ttk.Combobox(state="readonly", values=[x+1 for x in range(10)])
 hiddendd.set(layer_sizes[1])
-hiddendd.place(relx = 0.6, rely = 0.89)
-hiddendd_label = tk.Label(root, text="Hidden Layer Neurons")
-hiddendd_label.place(relx = 0.6, rely = 0.87)
+hiddendd.place(relx = 0.45, rely = 0.89)
+hiddendd_label = tk.Label(root, text="Hidden Layer Neurons",background='yellow')
+hiddendd_label.place(relx = 0.45, rely = 0.87)
 # Hidden neurons set Button
 hiddenset_button = tk.Button(root, text='Apply Changes', bd='5',command=update_hidden_layer_neurons)
-hiddenset_button.place(relx = 0.7, rely = 0.87)
+hiddenset_button.place(relx = 0.55, rely = 0.88)
+hiddenset_button.bind('<Enter>',on_enter)
+hiddenset_button.bind('<Leave>',on_leave)
+
 
 
 # Visualize Architecure Button
-vizb = tk.Button(root, text='Draw Architecture', bd='5',command=draw_architecture)
+vizb = tk.Button(root, text='Draw Architecture', bd='5',command=draw_architecture,highlightbackground='black',highlightthickness=2)
 vizb.place(relx = 0.1, rely = 0.1)
-
+orig_color = vizb.cget("background")
+vizb.bind('<Enter>',on_enter)
+vizb.bind('<Leave>',on_leave)
 #param dropdown
 
 paramdd = ttk.Combobox(state="readonly", values=params)
 paramdd.set(params[0])
 paramdd.place(relx = 0.1, rely = 0.89)
-param_select_label = tk.Label(root, text="Select Weight/Bias to Edit")
+param_select_label = tk.Label(root, text="Select Weight/Bias to Edit",background = 'yellow')
 param_select_label.place(relx = 0.1, rely = 0.87)
 
 def update_params():
@@ -152,14 +167,19 @@ def update_params():
 def slider_event(value):
     slider_val_label.configure(text = "{:.1f}".format(value))
 
-slider_val_label = tk.Label(root, text="")
-slider_val_label.place(relx = 0.25, rely = 0.9)    
 
 slider = customtkinter.CTkSlider(master=root, from_=-10, to=10,command = slider_event,fg_color = 'blue')
 slider.set(0)
 slider.place(relx=0.2, rely=0.88)
 sliderconfirm_button = tk.Button(root, text='Update Weight/Bias Value', bd='5',command=update_params)
 sliderconfirm_button.place(relx = 0.32, rely = 0.88)
+
+sliderconfirm_button.bind('<Enter>',on_enter)
+sliderconfirm_button.bind('<Leave>',on_leave)
+
+slider_val_label = tk.Label(root, text=slider.get())
+slider_val_label.place(relx = 0.25, rely = 0.9)    
+
 
 def construct_weights_from_values(weight_values, input_nodes=layer_sizes[0], hidden_nodes=layer_sizes[1], output_nodes=layer_sizes[2]):
     num_input_to_hidden = input_nodes * hidden_nodes 
