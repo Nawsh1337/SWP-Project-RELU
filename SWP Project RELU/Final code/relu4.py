@@ -167,6 +167,23 @@ def update_params():
 def slider_event(value):
     slider_val_label.configure(text = "{:.1f}".format(value))
 
+def update_slider_value(event):
+    global weights, biases, flattened_biases, layer_sizes
+    selected_param = paramdd.get()
+    if selected_param.startswith('IW'):
+        new_value = weights[int(selected_param[2:]) - 1]
+    elif selected_param.startswith('HW'):
+        new_value = weights[int(selected_param[2:]) + layer_sizes[0] * layer_sizes[1] - 1]
+    elif selected_param.startswith('IB'):
+        new_value = biases[layer_sizes[1]][int(selected_param[2:]) - 1]
+    else:  
+        new_value = biases[layer_sizes[2]][0]
+
+    slider.set(new_value)
+    slider_val_label.config(text=f"{new_value:.1f}")
+
+paramdd.bind("<<ComboboxSelected>>", update_slider_value)
+
 
 slider = customtkinter.CTkSlider(master=root, from_=-10, to=10,command = slider_event,fg_color = 'blue')
 slider.set(0)
