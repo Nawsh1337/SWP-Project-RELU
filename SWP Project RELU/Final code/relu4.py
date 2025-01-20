@@ -8,7 +8,7 @@ import neural_net as nn
 from tkinter import *
 import customtkinter
 
-layer_sizes = [2,4,1]
+layer_sizes = [3,4,1]
 params = [f"IW{i+1}" for i in range(layer_sizes[0]*layer_sizes[1])] + [f"IB{i+1}" for i in range(layer_sizes[1])] + \
 [f"HW{i+1}" for i in range(layer_sizes[1])] + ["OB"]
 
@@ -230,7 +230,9 @@ def relu_network(x, weights1, biases1, weights2, biases2):#calculate output
 x1 = np.arange(-10, 11, 1)
 x2 = np.arange(-10, 11, 1)
 x1_grid, x2_grid = np.meshgrid(x1, x2)
-inputs = np.c_[x1_grid.ravel(), x2_grid.ravel()]
+# inputs = np.c_[x1_grid.ravel(), x2_grid.ravel()]
+x3_fixed = 0
+inputs = np.c_[x1_grid.ravel(), x2_grid.ravel(), np.full_like(x1_grid.ravel(), x3_fixed)]
 
 
 def update_output():
@@ -244,7 +246,11 @@ def update_output():
   biases2 = np.zeros(1)
 
   for x in range(layer_sizes[0]*layer_sizes[1]):#0,1,2,3,4,5,6,7
-     weights1[int(x/layer_sizes[1])][x if x < layer_sizes[1] else x-layer_sizes[1]] = weights[x]
+    print(x,layer_sizes[0],layer_sizes[1])
+    #  weights1[int(x/layer_sizes[1])][x if x < layer_sizes[1] else x-layer_sizes[1]] = weights[x]
+    row, col = divmod(x, layer_sizes[1])
+    weights1[row][col] = weights[x]
+
   
   for x in range(layer_sizes[1]):#8,9,10,11
      weights2[x][0] = weights[x+layer_sizes[0]*layer_sizes[1]]
@@ -261,7 +267,21 @@ def update_output():
   results.set_zlim(0, 20)
   canvas.draw()
 
+x3_values = [0, 5, 10, 15, 20]
+x3_var = tk.DoubleVar(value=x3_values[0])
 
+def update_x3_value(*args):
+    global inputs, x1_grid, x2_grid
+    x3_fixed = x3_var.get()
+    inputs = np.c_[x1_grid.ravel(), x2_grid.ravel(), np.full_like(x1_grid.ravel(), x3_fixed)]
+    update_output()
+
+x3_menu = tk.OptionMenu(root, x3_var, *x3_values, command=lambda _: update_x3_value())
+x3_menu.place(relx=0.63, rely=0.91)
+x3_menu.config(width=10)
+
+x3_menu_label = tk.Label(root, text="Value of x3",background='yellow')
+x3_menu_label.place(relx = 0.63, rely = 0.88)
 
 if __name__ == '__main__':
   root.mainloop()
