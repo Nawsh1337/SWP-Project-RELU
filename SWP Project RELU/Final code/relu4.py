@@ -1,12 +1,13 @@
 import tkinter as tk
 from tkinter import ttk#enables drop-down lists
-from tkinter import messagebox 
+from tkinter import messagebox,filedialog 
 from matplotlib.backends.backend_tkagg import (FigureCanvasTkAgg, NavigationToolbar2Tk)#for adding plt in tkinter
 import matplotlib.pyplot as plt
 import numpy as np
 import neural_net as nn
 from tkinter import *
 import customtkinter
+import csv
 
 layer_sizes = [3,4,1]
 params = [f"IW{i+1}" for i in range(layer_sizes[0]*layer_sizes[1])] + [f"IB{i+1}" for i in range(layer_sizes[1])] + \
@@ -101,6 +102,110 @@ def update_hidden_layer_neurons():
   update_output()
   messagebox.showinfo("Information", "All Weights and Biases have been reset to 0 for the new architecture.") 
 
+
+def importer():
+    file_path = filedialog.askopenfilename(filetypes=[("CSV files", "*.csv")])
+    
+    if not file_path:
+        messagebox.showerror("Error", "No file selected.")
+        return
+
+    global layer_sizes, weights, weights_list, biases, flattened_biases, params
+
+    try:
+        with open(file_path, 'r') as file:
+            reader = csv.reader(file)
+            new_hidden_neurons = int(next(reader)[0])
+            layer_sizes[1] = new_hidden_neurons
+
+            values = list(map(float, next(reader)))
+
+            hidden_weights_count = layer_sizes[0] * layer_sizes[1]
+            hidden_bias_count = layer_sizes[1]
+            output_weights_count = layer_sizes[1] * layer_sizes[2]
+
+            expected_total = hidden_weights_count + hidden_bias_count + output_weights_count + 1
+            if len(values) != expected_total:
+                raise ValueError(f"Expected {expected_total} values, but got {len(values)}.")
+
+            hidden_weights = values[:hidden_weights_count]
+            hidden_biases = values[hidden_weights_count:hidden_weights_count + hidden_bias_count]
+            output_weights = values[hidden_weights_count + hidden_bias_count:hidden_weights_count + hidden_bias_count + output_weights_count]
+            output_bias = values[-1]
+
+            weights_list = [
+                np.array(hidden_weights).reshape(layer_sizes[0], layer_sizes[1]),
+                np.array(output_weights).reshape(layer_sizes[1], layer_sizes[2])
+            ]
+
+            global weights
+            weights = np.concatenate([weights_list[0].flatten(), weights_list[1].flatten()])
+
+            biases = {
+                layer_sizes[1]: np.array(hidden_biases),#Hidden layer biases
+                layer_sizes[2]: np.array([output_bias])#Output layer bias
+            }
+
+            flattened_biases = np.append(biases[layer_sizes[1]], biases[layer_sizes[2]])
+
+            params = (
+                [f"IW{i+1}" for i in range(hidden_weights_count)] +
+                [f"IB{i+1}" for i in range(hidden_bias_count)] +
+                [f"HW{i+1}" for i in range(output_weights_count)] +
+                ["OB"]
+            )
+
+            paramdd.configure(values=params)
+            display_weights()
+            update_output()
+
+            messagebox.showinfo("Success", "Weights and Biases have been updated from the CSV file.")
+
+    except Exception as e:
+        messagebox.showerror("Error", f"An error occurred while importing: {str(e)}")
+
+
+import_button = tk.Button(root, text='Import', bd='5',command= importer)
+import_button.place(relx = 0.05, rely = 0.2)
+
+#   new_hidden_neurons = hiddendd.get()
+#   global layer_sizes,weights,weights_list,biases,flattened_biases,params
+#   layer_sizes[1] = int(new_hidden_neurons)
+#   weights = np.zeros(layer_sizes[0]*layer_sizes[1]+layer_sizes[1])
+#   print(weights_list)
+#   weights_list = construct_weights_from_values(weights,layer_sizes[0],layer_sizes[1],layer_sizes[2])
+#   print(weights_list)
+#   biases = {
+#     layer_sizes[1]: np.zeros(layer_sizes[1]),  # Biases for the hidden layer
+#     layer_sizes[2]: np.zeros(1)  # Bias for the output layer
+#   }
+#   flattened_biases = np.append(biases[layer_sizes[1]],biases[layer_sizes[2]])
+#   params = [f"IW{i+1}" for i in range(layer_sizes[0]*layer_sizes[1])] + [f"IB{i+1}" for i in range(layer_sizes[1])] + \
+# [f"HW{i+1}" for i in range(layer_sizes[1])] + ["OB"]
+#   paramdd.configure(values=params)
+#   display_weights()
+#   update_output()
+#   messagebox.showinfo("Information", "All Weights and Biases have been reset to 0 for the new architecture.")
+def exporter():
+  file_path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
+  if not file_path:
+      messagebox.showerror("Error", "No file selected.")
+      return
+  global layer_sizes, weights_list, biases
+  hidden_weights = weights_list[0].flatten()
+  output_weights = weights_list[1].flatten()
+  hidden_biases = biases[layer_sizes[1]]
+  output_bias = biases[layer_sizes[2]][0]
+
+  all_values = list(hidden_weights) + list(hidden_biases) + list(output_weights) + [output_bias]
+
+  with open(file_path, 'w', newline='') as file:
+      writer = csv.writer(file)
+      writer.writerow([layer_sizes[1]])
+      writer.writerow(all_values)
+
+export_button = tk.Button(root, text='Export', bd='5',command= exporter)
+export_button.place(relx = 0.05, rely = 0.3)
 
 def on_enter(e):
   e.widget['background'] = 'white'
