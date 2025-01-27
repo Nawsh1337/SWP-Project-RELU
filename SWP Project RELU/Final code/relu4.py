@@ -372,21 +372,26 @@ def update_output():
   results.set_zlim(0, 20)
   canvas.draw()
 
-x3_values = [0, 5, 10, 15, 20]
-x3_var = tk.DoubleVar(value=x3_values[0])
+x3_var = tk.DoubleVar(value=0)
 
-def update_x3_value(*args):
+def update_x3_value(value=None):
     global inputs, x1_grid, x2_grid
-    x3_fixed = x3_var.get()
+    if value is not None:
+        x3_fixed = float(value)
+        x3_value_label.config(text=f"x3: {x3_fixed:.1f}")#Update the x3 value label
+    else:
+        x3_fixed = x3_var.get()
+    
     inputs = np.c_[x1_grid.ravel(), x2_grid.ravel(), np.full_like(x1_grid.ravel(), x3_fixed)]
+    display_weights()
     update_output()
 
-x3_menu = tk.OptionMenu(root, x3_var, *x3_values, command=lambda _: update_x3_value())
-x3_menu.place(relx=0.63, rely=0.91)
-x3_menu.config(width=10)
+x3_slider = customtkinter.CTkSlider(master=root, from_=0, to=20, command=lambda value: update_x3_value(value))
+x3_slider.set(0)
+x3_slider.place(relx=0.63, rely=0.88)
 
-x3_menu_label = tk.Label(root, text="Value of x3",background='yellow')
-x3_menu_label.place(relx = 0.63, rely = 0.88)
+x3_value_label = tk.Label(root, text="x3: 0.0", background='yellow')
+x3_value_label.place(relx=0.63, rely=0.85)
 
 if __name__ == '__main__':
   root.mainloop()
