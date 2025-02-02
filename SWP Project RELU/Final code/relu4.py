@@ -170,7 +170,8 @@ def importer(model_name = None):
             display_weights()
             update_output()
 
-            messagebox.showinfo("Success", "Weights and Biases have been updated from the CSV file.")
+            if model_name == None:
+               messagebox.showinfo("Success", "Weights and Biases have been updated from the CSV file.")
 
     except Exception as e:
         messagebox.showerror("Error", f"An error occurred while importing: {str(e)}")
@@ -183,25 +184,84 @@ import_button.place(relx = 0.05, rely = 0.2)
 
 def open_model_window():
     # Create a new top-level window
-    import_window = Toplevel(root)
-    import_window.title("Choose a Model to Display.")
-    import_window.geometry("300x200")  # Set window size
+    model_window = Toplevel(root)
+    model_window.title("Choose a Model to Display.")
+    model_window.geometry("300x200")
 
     def option_selected(option):
         importer(option)
-        import_window.destroy()
+        model_window.destroy()
 
-    btn1 = tk.Button(import_window, text="Max. Model", command=lambda: option_selected("max"))
+    btn1 = tk.Button(model_window, text="Max. Model", command=lambda: option_selected("max"))
     btn1.pack(pady=10)
 
-    btn2 = tk.Button(import_window, text="Min. Model", command=lambda: option_selected("min"))
+    btn2 = tk.Button(model_window, text="Min. Model", command=lambda: option_selected("min"))
     btn2.pack(pady=10)
 
-    btn3 = tk.Button(import_window, text="Avg. Model", command=lambda: option_selected("avg"))
+    btn3 = tk.Button(model_window, text="Avg. Model", command=lambda: option_selected("avg"))
     btn3.pack(pady=10)
 
 pretrained_model_button = tk.Button(root, text="Display Model", bd=5, command=open_model_window)
 pretrained_model_button.place(relx=0.05, rely=0.4)
+
+##################For prediction on chosen model
+def open_model_predict_window():
+    # Create a new top-level window
+    model_window = Toplevel(root)
+    model_window.title("Choose a Model to Display.")
+    model_window.geometry("300x200")
+    
+    def option_selected(option):#values to be sent to model_preprocess for prediction
+        def process_values():
+          x1 = entry_x1.get()
+          x2 = entry_x2.get()
+          x3 = entry_x3.get()
+          if x1 == '':
+             x1 = 0
+          if x2 == '':
+             x2 = 0
+          if x3 == '':
+             x3 = 0
+          x1 = float(x1)
+          x2 = float(x2)
+          x3 = float(x3)
+          res  = mp.predict(option,[x1,x2,x3])
+          text = "Success, "+ "The output of the " + option + ' model for the values ' +  str([x1,x2,x3]) + ' is ' + str(res)
+          messagebox.showinfo('Output',text)
+
+          model_window.destroy()
+
+        for widget in model_window.winfo_children():
+          widget.destroy()#remove the buttons
+        tk.Label(model_window, text="X1:").pack()
+        entry_x1 = tk.Entry(model_window)
+        entry_x1.pack(pady=5)
+
+        tk.Label(model_window, text="X2:").pack()
+        entry_x2 = tk.Entry(model_window)
+        entry_x2.pack(pady=5)
+
+        tk.Label(model_window, text="X3:").pack()
+        entry_x3 = tk.Entry(model_window)
+        entry_x3.pack(pady=5)
+        
+        
+        process_btn = tk.Button(model_window, text="Process Values", command=process_values)
+        process_btn.pack(pady=10)
+
+        
+
+    btn1 = tk.Button(model_window, text="Max. Model", command=lambda: option_selected("max"))
+    btn1.pack(pady=10)
+
+    btn2 = tk.Button(model_window, text="Min. Model", command=lambda: option_selected("min"))
+    btn2.pack(pady=10)
+
+    btn3 = tk.Button(model_window, text="Avg. Model", command=lambda: option_selected("avg"))
+    btn3.pack(pady=10)
+
+pretrained_model_predict_button = tk.Button(root, text="Test Model", bd=5, command=open_model_predict_window)
+pretrained_model_predict_button.place(relx=0.05, rely=0.5)
 
 
 def exporter():
