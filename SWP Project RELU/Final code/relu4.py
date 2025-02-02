@@ -35,7 +35,7 @@ frame.pack()
 plt.ion()
 fig = plt.Figure()
 
-gs = fig.add_gridspec(1, 2, width_ratios=[3, 1])  # Adjust width ratios
+gs = fig.add_gridspec(1, 2, width_ratios=[3, 1])  #adjust width ratios
 
 results = fig.add_subplot(121, projection='3d')
 
@@ -44,6 +44,7 @@ canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 toolbar = NavigationToolbar2Tk(canvas, root, pack_toolbar=False)
 toolbar.update()
 toolbar.pack(side=tk.BOTTOM, fill=tk.X)
+
 
 def display_weights():
   global fig,params,weights_list,weights
@@ -61,6 +62,7 @@ def display_weights():
   bar.set_title('Parameter Weights Visualization')
   fig.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1)
   canvas.draw()
+
 
 def display_biases():
   global fig,params,flattened_biases
@@ -168,24 +170,7 @@ def importer():
 import_button = tk.Button(root, text='Import', bd='5',command= importer)
 import_button.place(relx = 0.05, rely = 0.2)
 
-#   new_hidden_neurons = hiddendd.get()
-#   global layer_sizes,weights,weights_list,biases,flattened_biases,params
-#   layer_sizes[1] = int(new_hidden_neurons)
-#   weights = np.zeros(layer_sizes[0]*layer_sizes[1]+layer_sizes[1])
-#   print(weights_list)
-#   weights_list = construct_weights_from_values(weights,layer_sizes[0],layer_sizes[1],layer_sizes[2])
-#   print(weights_list)
-#   biases = {
-#     layer_sizes[1]: np.zeros(layer_sizes[1]),  # Biases for the hidden layer
-#     layer_sizes[2]: np.zeros(1)  # Bias for the output layer
-#   }
-#   flattened_biases = np.append(biases[layer_sizes[1]],biases[layer_sizes[2]])
-#   params = [f"IW{i+1}" for i in range(layer_sizes[0]*layer_sizes[1])] + [f"IB{i+1}" for i in range(layer_sizes[1])] + \
-# [f"HW{i+1}" for i in range(layer_sizes[1])] + ["OB"]
-#   paramdd.configure(values=params)
-#   display_weights()
-#   update_output()
-#   messagebox.showinfo("Information", "All Weights and Biases have been reset to 0 for the new architecture.")
+
 def exporter():
   file_path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
   if not file_path:
@@ -207,8 +192,10 @@ def exporter():
 export_button = tk.Button(root, text='Export', bd='5',command= exporter)
 export_button.place(relx = 0.05, rely = 0.3)
 
+
 def on_enter(e):
   e.widget['background'] = 'white'
+
 
 def on_leave(e):
   global orig_color
