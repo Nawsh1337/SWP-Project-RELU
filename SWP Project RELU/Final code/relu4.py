@@ -8,6 +8,9 @@ import neural_net as nn
 from tkinter import *
 import customtkinter
 import csv
+import model_preprocess as mp
+from tkinter import Toplevel#for new window for models
+
 
 layer_sizes = [3,4,1]
 params = [f"IW{i+1}" for i in range(layer_sizes[0]*layer_sizes[1])] + [f"IB{i+1}" for i in range(layer_sizes[1])] + \
@@ -105,22 +108,28 @@ def update_hidden_layer_neurons():
   messagebox.showinfo("Information", "All Weights and Biases have been reset to 0 for the new architecture.") 
 
 
-def importer():
-    file_path = filedialog.askopenfilename(filetypes=[("CSV files", "*.csv")])
+def importer(model_name = None):
     
-    if not file_path:
-        messagebox.showerror("Error", "No file selected.")
-        return
+    if model_name == None:
+      file_path = filedialog.askopenfilename(filetypes=[("CSV files", "*.csv")])
+      
+      if not file_path:
+          messagebox.showerror("Error", "No file selected.")
+          return
 
     global layer_sizes, weights, weights_list, biases, flattened_biases, params
 
     try:
-        with open(file_path, 'r') as file:
-            reader = csv.reader(file)
-            new_hidden_neurons = int(next(reader)[0])
-            layer_sizes[1] = new_hidden_neurons
-
-            values = list(map(float, next(reader)))
+            if model_name == None:
+              with open(file_path, 'r') as file:
+                reader = csv.reader(file)
+                new_hidden_neurons = int(next(reader)[0])
+                layer_sizes[1] = new_hidden_neurons
+                values = list(map(float, next(reader)))
+            else:#if loaded model is being displayed
+               new_hidden_neurons,values = mp.model_weights_loader(model_name)
+               layer_sizes[1] = new_hidden_neurons
+            print(values)
 
             hidden_weights_count = layer_sizes[0] * layer_sizes[1]
             hidden_bias_count = layer_sizes[1]
@@ -169,6 +178,30 @@ def importer():
 
 import_button = tk.Button(root, text='Import', bd='5',command= importer)
 import_button.place(relx = 0.05, rely = 0.2)
+
+##### Opens new window for selecting the model
+
+def open_model_window():
+    # Create a new top-level window
+    import_window = Toplevel(root)
+    import_window.title("Choose an Option")
+    import_window.geometry("300x200")  # Set window size
+
+    def option_selected(option):
+        importer(option)
+        import_window.destroy()
+
+    btn1 = tk.Button(import_window, text="Max. Model", command=lambda: option_selected("max"))
+    btn1.pack(pady=10)
+
+    btn2 = tk.Button(import_window, text="Min. Model", command=lambda: option_selected("min"))
+    btn2.pack(pady=10)
+
+    btn3 = tk.Button(import_window, text="Avg. Model", command=lambda: option_selected("avg"))
+    btn3.pack(pady=10)
+
+pretrained_model_button = tk.Button(root, text="Display Model", bd=5, command=open_model_window)
+pretrained_model_button.place(relx=0.05, rely=0.4)
 
 
 def exporter():
