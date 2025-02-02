@@ -184,7 +184,7 @@ import_button.place(relx = 0.05, rely = 0.2)
 def open_model_window():
     # Create a new top-level window
     import_window = Toplevel(root)
-    import_window.title("Choose an Option")
+    import_window.title("Choose a Model to Display.")
     import_window.geometry("300x200")  # Set window size
 
     def option_selected(option):
