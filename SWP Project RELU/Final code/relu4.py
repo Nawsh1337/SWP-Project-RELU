@@ -13,8 +13,16 @@ from tkinter import Toplevel#for new window for models
 
 
 layer_sizes = [3,4,1]
-params = [f"IW{i+1}" for i in range(layer_sizes[0]*layer_sizes[1])] + [f"IB{i+1}" for i in range(layer_sizes[1])] + \
-[f"HW{i+1}" for i in range(layer_sizes[1])] + ["OB"]
+# params = [f"IW{i+1}" for i in range(layer_sizes[0]*layer_sizes[1])] + [f"IB{i+1}" for i in range(layer_sizes[1])] + \
+# [f"HW{i+1}" for i in range(layer_sizes[1])] + ["OB"]
+
+
+params = (
+    [f"IW{i:01d}{j:01d}" for i in range(layer_sizes[0]) for j in range(layer_sizes[1])] +
+    [f"IB{j:01d}" for j in range(layer_sizes[1])] +
+    [f"HW{j:01d}" for j in range(layer_sizes[1])] +
+    ["OB"])
+
 
 def draw_architecture():
   # print(layer_sizes)
@@ -100,8 +108,15 @@ def update_hidden_layer_neurons():
     layer_sizes[2]: np.zeros(1)  # Bias for the output layer
   }
   flattened_biases = np.append(biases[layer_sizes[1]],biases[layer_sizes[2]])
-  params = [f"IW{i+1}" for i in range(layer_sizes[0]*layer_sizes[1])] + [f"IB{i+1}" for i in range(layer_sizes[1])] + \
-[f"HW{i+1}" for i in range(layer_sizes[1])] + ["OB"]
+
+  params = (
+    [f"IW{i:01d}{j:01d}" for i in range(layer_sizes[0]) for j in range(layer_sizes[1])] +
+    [f"IB{j:01d}" for j in range(layer_sizes[1])] +
+    [f"HW{j:01d}" for j in range(layer_sizes[1])] +
+    ["OB"])
+
+#   params = [f"IW{i+1}" for i in range(layer_sizes[0]*layer_sizes[1])] + [f"IB{i+1}" for i in range(layer_sizes[1])] + \
+# [f"HW{i+1}" for i in range(layer_sizes[1])] + ["OB"]
   paramdd.configure(values=params)
   display_weights()
   update_output()
@@ -160,10 +175,10 @@ def importer(model_name = None):
             flattened_biases = np.append(biases[layer_sizes[1]], biases[layer_sizes[2]])
 
             params = (
-                [f"IW{i+1}" for i in range(hidden_weights_count)] +
-                [f"IB{i+1}" for i in range(hidden_bias_count)] +
-                [f"HW{i+1}" for i in range(output_weights_count)] +
-                ["OB"]
+            [f"IW{i:01d}{j:01d}" for i in range(layer_sizes[0]) for j in range(layer_sizes[1])] +
+            [f"IB{j:01d}" for j in range(layer_sizes[1])] +
+            [f"HW{j:01d}" for j in range(layer_sizes[1])] +
+            ["OB"]
             )
 
             paramdd.configure(values=params)
@@ -328,7 +343,11 @@ def update_params():
     selected_param = paramdd.get()
     new_value = slider.get()
     if selected_param.startswith('IW'):
-      weights[int(selected_param[2:])-1] = new_value
+      input_idx = int(selected_param[2:3])#changed
+      hidden_idx = int(selected_param[-1])#changed
+      flat_index = input_idx * layer_sizes[1] + hidden_idx
+      weights[flat_index] = new_value
+      # weights[int(selected_param[2:])-1] = new_value
       weights_list = construct_weights_from_values(weights,layer_sizes[0],layer_sizes[1],layer_sizes[2])
       display_weights()
 
@@ -356,7 +375,11 @@ def update_slider_value(event):
     global weights, biases, flattened_biases, layer_sizes
     selected_param = paramdd.get()
     if selected_param.startswith('IW'):
-        new_value = weights[int(selected_param[2:]) - 1]
+      input_idx = int(selected_param[2:3])#changed
+      hidden_idx = int(selected_param[-1])#changed
+      flat_index = input_idx * layer_sizes[1] + hidden_idx
+      weights[flat_index] = new_value
+        # new_value = weights[int(selected_param[2:]) - 1]
     elif selected_param.startswith('HW'):
         new_value = weights[int(selected_param[2:]) + layer_sizes[0] * layer_sizes[1] - 1]
     elif selected_param.startswith('IB'):
