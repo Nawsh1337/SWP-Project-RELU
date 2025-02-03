@@ -3,9 +3,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-import torch
-import torch.nn as nn
-
 class ReLU_MaxNN2(nn.Module):
     def __init__(self, input_size, hidden_size):
         super(ReLU_MaxNN2, self).__init__()
