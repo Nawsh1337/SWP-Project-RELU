@@ -11,7 +11,7 @@ import csv
 import model_preprocess as mp
 from tkinter import Toplevel#for new window for models
 
-
+arbitrary_inputs = [0,0,0]#x1,x2,x3 for prediction
 layer_sizes = [3,4,1]
 # params = [f"IW{i+1}" for i in range(layer_sizes[0]*layer_sizes[1])] + [f"IB{i+1}" for i in range(layer_sizes[1])] + \
 # [f"HW{i+1}" for i in range(layer_sizes[1])] + ["OB"]
@@ -104,10 +104,10 @@ def update_hidden_layer_neurons():
   weights_list = construct_weights_from_values(weights,layer_sizes[0],layer_sizes[1],layer_sizes[2])
   print(weights_list)
   biases = {
-    layer_sizes[1]: np.zeros(layer_sizes[1]),  # Biases for the hidden layer
-    layer_sizes[2]: np.zeros(1)  # Bias for the output layer
+    layer_sizes[1]: np.zeros(layer_sizes[1]),  #Biases for the hidden layer
+    layer_sizes[2] if layer_sizes[1]>1 else 'ob': np.zeros(1)  #Bias for the output layer
   }
-  flattened_biases = np.append(biases[layer_sizes[1]],biases[layer_sizes[2]])
+  flattened_biases = np.append(biases[layer_sizes[1]],biases[layer_sizes[2] if layer_sizes[1]>1 else 'ob'])
 
   params = (
     [f"IW{i:01d}{j:01d}" for i in range(layer_sizes[0]) for j in range(layer_sizes[1])] +
@@ -120,6 +120,7 @@ def update_hidden_layer_neurons():
   paramdd.configure(values=params)
   display_weights()
   update_output()
+  forward()
   messagebox.showinfo("Information", "All Weights and Biases have been reset to 0 for the new architecture.") 
 
 
@@ -169,10 +170,10 @@ def importer(model_name = None):
 
             biases = {
                 layer_sizes[1]: np.array(hidden_biases),#Hidden layer biases
-                layer_sizes[2]: np.array([output_bias])#Output layer bias
+                layer_sizes[2] if layer_sizes[1]>1 else 'ob': np.array([output_bias])#Output layer bias
             }
 
-            flattened_biases = np.append(biases[layer_sizes[1]], biases[layer_sizes[2]])
+            flattened_biases = np.append(biases[layer_sizes[1]], biases[layer_sizes[2] if layer_sizes[1]>1 else 'ob'])
 
             params = (
             [f"IW{i:01d}{j:01d}" for i in range(layer_sizes[0]) for j in range(layer_sizes[1])] +
@@ -184,7 +185,7 @@ def importer(model_name = None):
             paramdd.configure(values=params)
             display_weights()
             update_output()
-
+            forward()
             if model_name == None:
                messagebox.showinfo("Success", "Weights and Biases have been updated from the CSV file.")
 
@@ -219,64 +220,64 @@ def open_model_window():
 pretrained_model_button = tk.Button(root, text="Display Model", bd=5, command=open_model_window)
 pretrained_model_button.place(relx=0.05, rely=0.4)
 
-##################For prediction on chosen model
-def open_model_predict_window():
-    # Create a new top-level window
-    model_window = Toplevel(root)
-    model_window.title("Choose a Model to Display.")
-    model_window.geometry("300x200")
+# ##################For prediction on chosen model
+# def open_model_predict_window():
+#     # Create a new top-level window
+#     model_window = Toplevel(root)
+#     model_window.title("Choose a Model to Display.")
+#     model_window.geometry("300x200")
     
-    def option_selected(option):#values to be sent to model_preprocess for prediction
-        def process_values():
-          x1 = entry_x1.get()
-          x2 = entry_x2.get()
-          x3 = entry_x3.get()
-          if x1 == '':
-             x1 = 0
-          if x2 == '':
-             x2 = 0
-          if x3 == '':
-             x3 = 0
-          x1 = float(x1)
-          x2 = float(x2)
-          x3 = float(x3)
-          res  = mp.predict(option,[x1,x2,x3])
-          text = "Success, "+ "The output of the " + option + ' model for the values ' +  str([x1,x2,x3]) + ' is ' + str(res)
-          messagebox.showinfo('Output',text)
+#     def option_selected(option):#values to be sent to model_preprocess for prediction
+#         def process_values():
+#           x1 = entry_x1.get()
+#           x2 = entry_x2.get()
+#           x3 = entry_x3.get()
+#           if x1 == '':
+#              x1 = 0
+#           if x2 == '':
+#              x2 = 0
+#           if x3 == '':
+#              x3 = 0
+#           x1 = float(x1)
+#           x2 = float(x2)
+#           x3 = float(x3)
+#           res  = mp.predict(option,[x1,x2,x3])
+#           text = "Success, "+ "The output of the " + option + ' model for the values ' +  str([x1,x2,x3]) + ' is ' + str(res)
+#           messagebox.showinfo('Output',text)
 
-          model_window.destroy()
+#           model_window.destroy()
 
-        for widget in model_window.winfo_children():
-          widget.destroy()#remove the buttons
-        tk.Label(model_window, text="X1:").pack()
-        entry_x1 = tk.Entry(model_window)
-        entry_x1.pack(pady=5)
+#         for widget in model_window.winfo_children():
+#           widget.destroy()#remove the buttons
+#         tk.Label(model_window, text="X1:").pack()
+#         entry_x1 = tk.Entry(model_window)
+#         entry_x1.pack(pady=5)
 
-        tk.Label(model_window, text="X2:").pack()
-        entry_x2 = tk.Entry(model_window)
-        entry_x2.pack(pady=5)
+#         tk.Label(model_window, text="X2:").pack()
+#         entry_x2 = tk.Entry(model_window)
+#         entry_x2.pack(pady=5)
 
-        tk.Label(model_window, text="X3:").pack()
-        entry_x3 = tk.Entry(model_window)
-        entry_x3.pack(pady=5)
+#         tk.Label(model_window, text="X3:").pack()
+#         entry_x3 = tk.Entry(model_window)
+#         entry_x3.pack(pady=5)
         
         
-        process_btn = tk.Button(model_window, text="Process Values", command=process_values)
-        process_btn.pack(pady=10)
+#         process_btn = tk.Button(model_window, text="Process Values", command=process_values)
+#         process_btn.pack(pady=10)
 
         
 
-    btn1 = tk.Button(model_window, text="Max. Model", command=lambda: option_selected("max"))
-    btn1.pack(pady=10)
+#     btn1 = tk.Button(model_window, text="Max. Model", command=lambda: option_selected("max"))
+#     btn1.pack(pady=10)
 
-    btn2 = tk.Button(model_window, text="Min. Model", command=lambda: option_selected("min"))
-    btn2.pack(pady=10)
+#     btn2 = tk.Button(model_window, text="Min. Model", command=lambda: option_selected("min"))
+#     btn2.pack(pady=10)
 
-    btn3 = tk.Button(model_window, text="Avg. Model", command=lambda: option_selected("avg"))
-    btn3.pack(pady=10)
+#     btn3 = tk.Button(model_window, text="Avg. Model", command=lambda: option_selected("avg"))
+#     btn3.pack(pady=10)
 
-pretrained_model_predict_button = tk.Button(root, text="Test Model", bd=5, command=open_model_predict_window)
-pretrained_model_predict_button.place(relx=0.05, rely=0.5)
+# pretrained_model_predict_button = tk.Button(root, text="Test Model", bd=5, command=open_model_predict_window)
+# pretrained_model_predict_button.place(relx=0.05, rely=0.5)
 
 
 def exporter():
@@ -288,7 +289,7 @@ def exporter():
   hidden_weights = weights_list[0].flatten()
   output_weights = weights_list[1].flatten()
   hidden_biases = biases[layer_sizes[1]]
-  output_bias = biases[layer_sizes[2]][0]
+  output_bias = biases[layer_sizes[2] if layer_sizes[1]>1 else 'ob'][0]
 
   all_values = list(hidden_weights) + list(hidden_biases) + list(output_weights) + [output_bias]
 
@@ -352,21 +353,21 @@ def update_params():
       display_weights()
 
     elif selected_param.startswith('HW'):
-      weights[int(selected_param[2:]) + layer_sizes[0]*layer_sizes[1]-1] = new_value  
+      weights[int(selected_param[2:]) + layer_sizes[0]*layer_sizes[1]] = new_value  
       weights_list = construct_weights_from_values(weights,layer_sizes[0],layer_sizes[1],layer_sizes[2])
       display_weights()
 
     elif selected_param.startswith('IB'):
-      biases[layer_sizes[1]][int(selected_param[2:])-1] = new_value
-      flattened_biases = np.append(biases[layer_sizes[1]],biases[layer_sizes[2]])
+      biases[layer_sizes[1]][int(selected_param[2:])] = new_value
+      flattened_biases = np.append(biases[layer_sizes[1]],biases[layer_sizes[2] if layer_sizes[1]>1 else 'ob'])
       display_biases()
 
     else:
-      biases[layer_sizes[2]][0] = new_value 
-      flattened_biases = np.append(biases[layer_sizes[1]],biases[layer_sizes[2]])
+      biases[layer_sizes[2] if layer_sizes[1]>1 else 'ob'][0] = new_value 
+      flattened_biases = np.append(biases[layer_sizes[1]],biases[layer_sizes[2] if layer_sizes[1]>1 else 'ob'])
       display_biases()
     update_output()
-
+    forward()
 #slider
 def slider_event(value):
     slider_val_label.configure(text = "{:.1f}".format(value))
@@ -378,14 +379,14 @@ def update_slider_value(event):
       input_idx = int(selected_param[2:3])#changed
       hidden_idx = int(selected_param[-1])#changed
       flat_index = input_idx * layer_sizes[1] + hidden_idx
-      weights[flat_index] = new_value
+      new_value = weights[flat_index]
         # new_value = weights[int(selected_param[2:]) - 1]
     elif selected_param.startswith('HW'):
-        new_value = weights[int(selected_param[2:]) + layer_sizes[0] * layer_sizes[1] - 1]
+        new_value = weights[int(selected_param[2:]) + layer_sizes[0] * layer_sizes[1]]
     elif selected_param.startswith('IB'):
-        new_value = biases[layer_sizes[1]][int(selected_param[2:]) - 1]
+        new_value = biases[layer_sizes[1]][int(selected_param[2:])]
     else:  
-        new_value = biases[layer_sizes[2]][0]
+        new_value = biases[layer_sizes[2] if layer_sizes[1]>1 else 'ob'][0]
 
     slider.set(new_value)
     slider_val_label.config(text=f"{new_value:.1f}")
@@ -418,9 +419,9 @@ weights = np.zeros(layer_sizes[0]*layer_sizes[1]+layer_sizes[1])
 weights_list = construct_weights_from_values(weights)
 biases = {
     layer_sizes[1]: np.zeros(layer_sizes[1]),  # Biases for the hidden layer
-    layer_sizes[2]: np.zeros(1)  # Bias for the output layer
+    layer_sizes[2] if layer_sizes[1]>1 else 'ob': np.zeros(1)  # Bias for the output layer
 }
-flattened_biases = np.append(biases[layer_sizes[1]],biases[layer_sizes[2]])
+flattened_biases = np.append(biases[layer_sizes[1]],biases[layer_sizes[2] if layer_sizes[1]>1 else 'ob'])
 # print(flattened_biases)
 
 
@@ -441,6 +442,57 @@ x1_grid, x2_grid = np.meshgrid(x1, x2)
 # inputs = np.c_[x1_grid.ravel(), x2_grid.ravel()]
 x3_fixed = 0
 inputs = np.c_[x1_grid.ravel(), x2_grid.ravel(), np.full_like(x1_grid.ravel(), x3_fixed)]
+
+
+#forward pass / prediction function
+def forward():
+  x1 = float(entry_x1.get())
+  x2 = float(entry_x2.get())
+  x3 = float(entry_x3.get())
+  inputs = np.array([[x1, x2, x3]])
+  weights1 = np.zeros((layer_sizes[0], layer_sizes[1]))
+  biases1 = np.zeros(layer_sizes[1])
+  weights2 = np.zeros((layer_sizes[1], 1))
+  biases2 = np.zeros(1)
+
+  for x in range(layer_sizes[0]*layer_sizes[1]):#0,1,2,3,4,5,6,7
+    print(x,layer_sizes[0],layer_sizes[1])
+    #  weights1[int(x/layer_sizes[1])][x if x < layer_sizes[1] else x-layer_sizes[1]] = weights[x]
+    row, col = divmod(x, layer_sizes[1])
+    weights1[row][col] = weights[x]
+
+  
+  for x in range(layer_sizes[1]):#8,9,10,11
+     weights2[x][0] = weights[x+layer_sizes[0]*layer_sizes[1]]
+  
+  for x in range(layer_sizes[1]):
+     biases1[x] = biases[layer_sizes[1]][x]
+  
+  biases2[0] = biases[layer_sizes[2] if layer_sizes[1]>1 else 'ob'][0]
+  output = relu_network(inputs, weights1, biases1, weights2, biases2)
+  output_label.config(text=f"Output: {output[0][0]:.4f}")
+
+label_x1 = tk.Label(root, text="x1")
+label_x1.place(relx=0.05, rely=0.5)
+entry_x1 = tk.Entry(root)
+entry_x1.insert(0, "0")
+entry_x1.place(relx=0.05, rely=0.53)
+
+label_x2 = tk.Label(root, text="x2")
+label_x2.place(relx=0.05, rely=0.57)
+entry_x2 = tk.Entry(root)
+entry_x2.insert(0, "0")
+entry_x2.place(relx=0.05, rely=0.6)
+
+label_x3 = tk.Label(root, text="x3")
+label_x3.place(relx=0.05, rely=0.64)
+entry_x3 = tk.Entry(root)
+entry_x3.insert(0, "0")
+entry_x3.place(relx=0.05, rely=0.67)
+
+output_label = tk.Label(root, text="Output: ",background='green')
+output_label.place(relx=0.05, rely=0.75)
+
 
 
 def update_output():
@@ -466,7 +518,7 @@ def update_output():
   for x in range(layer_sizes[1]):
      biases1[x] = biases[layer_sizes[1]][x]
   
-  biases2[0] = biases[layer_sizes[2]][0]
+  biases2[0] = biases[layer_sizes[2] if layer_sizes[1]>1 else 'ob'][0]
   output = relu_network(inputs, weights1, biases1, weights2, biases2).reshape(x1_grid.shape)
   results.plot_surface(x1_grid, x2_grid, output, cmap="viridis", alpha=0.8)
   results.set_xlabel("x1")
@@ -488,13 +540,16 @@ def update_x3_value(value=None):
     inputs = np.c_[x1_grid.ravel(), x2_grid.ravel(), np.full_like(x1_grid.ravel(), x3_fixed)]
     display_weights()
     update_output()
-
+    forward()
 x3_slider = customtkinter.CTkSlider(master=root, from_=0, to=20, command=lambda value: update_x3_value(value))
 x3_slider.set(0)
 x3_slider.place(relx=0.63, rely=0.88)
 
 x3_value_label = tk.Label(root, text="x3: 0.0", background='yellow')
 x3_value_label.place(relx=0.63, rely=0.85)
+
+
+
 
 if __name__ == '__main__':
   root.mainloop()
