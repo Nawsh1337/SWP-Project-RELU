@@ -181,8 +181,25 @@ class DrawNN():
     def draw(self):
         widest_layer = max(self.neural_network)
         network = NeuralNetwork(widest_layer, self.biases)
-        for l in self.neural_network:
-            network.add_layer(l, self.biases.get(l, None))
+        print(self.biases)
+        input()
+        if self.neural_network == [3,3,1]:
+            for i,l in enumerate(self.neural_network):
+                if i==0:
+                    network.add_layer(l, [None,None,None])
+                else:
+                    network.add_layer(l, self.biases.get(l, None))
+        elif self.neural_network == [3,1,1]:
+            for i,l in enumerate(self.neural_network):
+                if i==0:
+                    network.add_layer(l, self.biases.get(l, None))
+                elif i == 1:
+                    network.add_layer(l, self.biases.get(l, None))
+                elif i == 2:
+                    network.add_layer(l, self.biases.get('ob', None))
+        else:
+            for l in self.neural_network:
+                network.add_layer(l, self.biases.get(l, None))
         network.draw(self.weights_list)
 
 

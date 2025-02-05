@@ -34,6 +34,8 @@ def draw_architecture():
   # print(weights)
   # print(weights_list)
   global layer_sizes,weights_list
+  print(weights_list)
+  print(biases)
   network = nn.DrawNN(layer_sizes,weights_list=weights_list, biases=biases)
   network.draw()
 
@@ -156,6 +158,9 @@ def update_hidden_layer_neurons():
 #   params = [f"IW{i+1}" for i in range(layer_sizes[0]*layer_sizes[1])] + [f"IB{i+1}" for i in range(layer_sizes[1])] + \
 # [f"HW{i+1}" for i in range(layer_sizes[1])] + ["OB"]
   paramdd.configure(values=params)
+  paramdd.set(params[0])
+  paramdd.event_generate("<<ComboboxSelected>>")
+  paramdd.configure(values=params)
   display_weights()
   update_output()
   forward()
@@ -183,7 +188,7 @@ def importer(model_name = None):
             else:#if loaded model is being displayed
                new_hidden_neurons,values = mp.model_weights_loader(model_name)
                layer_sizes[1] = new_hidden_neurons
-            print(values)
+            # print(new_hidden_neurons,values)
 
             hidden_weights_count = layer_sizes[0] * layer_sizes[1]
             hidden_bias_count = layer_sizes[1]
@@ -205,7 +210,7 @@ def importer(model_name = None):
 
             global weights,biases
             weights = np.concatenate([weights_list[0].flatten(), weights_list[1].flatten()])
-
+            print(weights)
             biases = {
                 layer_sizes[1]: np.array(hidden_biases),#Hidden layer biases
                 layer_sizes[2] if layer_sizes[1]>1 else 'ob': np.array([output_bias])#Output layer bias
