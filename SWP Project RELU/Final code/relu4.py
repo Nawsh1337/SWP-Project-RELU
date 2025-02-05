@@ -541,7 +541,7 @@ def update_x3_value(value=None):
     display_weights()
     update_output()
     forward()
-x3_slider = customtkinter.CTkSlider(master=root, from_=0, to=20, command=lambda value: update_x3_value(value))
+x3_slider = customtkinter.CTkSlider(master=root, from_=-10, to=10, command=lambda value: update_x3_value(value))
 x3_slider.set(0)
 x3_slider.place(relx=0.63, rely=0.88)
 
