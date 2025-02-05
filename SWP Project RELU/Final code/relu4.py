@@ -406,7 +406,7 @@ sliderconfirm_button.bind('<Leave>',on_leave)
 slider_val_label = tk.Label(root, text=slider.get())
 slider_val_label.place(relx = 0.25, rely = 0.9)    
 
-
+#added comment to test
 def construct_weights_from_values(weight_values, input_nodes=layer_sizes[0], hidden_nodes=layer_sizes[1], output_nodes=layer_sizes[2]):
     num_input_to_hidden = input_nodes * hidden_nodes 
     num_hidden_to_output = hidden_nodes * output_nodes 
