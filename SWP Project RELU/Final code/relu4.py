@@ -256,6 +256,9 @@ def open_model_window():
     btn3 = tk.Button(model_window, text="Avg. Model", command=lambda: option_selected("avg"))
     btn3.pack(pady=10)
 
+    btn4 = tk.Button(model_window, text="Select New Model Weights File.", command=lambda: option_selected("other"))
+    btn4.pack(pady=10)
+
 pretrained_model_button = tk.Button(root, text="Display Model", bd=5, command=open_model_window)
 pretrained_model_button.place(relx=0.05, rely=0.4)
 
