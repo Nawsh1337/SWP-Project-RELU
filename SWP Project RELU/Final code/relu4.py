@@ -18,9 +18,9 @@ layer_sizes = [3,4,1]
 
 
 params = (
-    [f"IW{i:01d}{j:01d}" for i in range(layer_sizes[0]) for j in range(layer_sizes[1])] +
-    [f"IB{j:01d}" for j in range(layer_sizes[1])] +
-    [f"HW{j:01d}" for j in range(layer_sizes[1])] +
+    [f"IW{i+1:01d}{j+1:01d}" for i in range(layer_sizes[0]) for j in range(layer_sizes[1])] +
+    [f"IB{j+1:01d}" for j in range(layer_sizes[1])] +
+    [f"HW{j+1:01d}" for j in range(layer_sizes[1])] +
     ["OB"])
 
 
@@ -110,9 +110,9 @@ def update_hidden_layer_neurons():
   flattened_biases = np.append(biases[layer_sizes[1]],biases[layer_sizes[2] if layer_sizes[1]>1 else 'ob'])
 
   params = (
-    [f"IW{i:01d}{j:01d}" for i in range(layer_sizes[0]) for j in range(layer_sizes[1])] +
-    [f"IB{j:01d}" for j in range(layer_sizes[1])] +
-    [f"HW{j:01d}" for j in range(layer_sizes[1])] +
+    [f"IW{i+1:01d}{j+1:01d}" for i in range(layer_sizes[0]) for j in range(layer_sizes[1])] +
+    [f"IB{j+1:01d}" for j in range(layer_sizes[1])] +
+    [f"HW{j+1:01d}" for j in range(layer_sizes[1])] +
     ["OB"])
 
 #   params = [f"IW{i+1}" for i in range(layer_sizes[0]*layer_sizes[1])] + [f"IB{i+1}" for i in range(layer_sizes[1])] + \
@@ -176,11 +176,10 @@ def importer(model_name = None):
             flattened_biases = np.append(biases[layer_sizes[1]], biases[layer_sizes[2] if layer_sizes[1]>1 else 'ob'])
 
             params = (
-            [f"IW{i:01d}{j:01d}" for i in range(layer_sizes[0]) for j in range(layer_sizes[1])] +
-            [f"IB{j:01d}" for j in range(layer_sizes[1])] +
-            [f"HW{j:01d}" for j in range(layer_sizes[1])] +
-            ["OB"]
-            )
+            [f"IW{i+1:01d}{j+1:01d}" for i in range(layer_sizes[0]) for j in range(layer_sizes[1])] +
+            [f"IB{j+1:01d}" for j in range(layer_sizes[1])] +
+            [f"HW{j+1:01d}" for j in range(layer_sizes[1])] +
+            ["OB"])
 
             paramdd.configure(values=params)
             display_weights()
@@ -344,8 +343,8 @@ def update_params():
     selected_param = paramdd.get()
     new_value = slider.get()
     if selected_param.startswith('IW'):
-      input_idx = int(selected_param[2:3])#changed
-      hidden_idx = int(selected_param[-1])#changed
+      input_idx = int(selected_param[2:3])-1#changed
+      hidden_idx = int(selected_param[-1])-1#changed
       flat_index = input_idx * layer_sizes[1] + hidden_idx
       weights[flat_index] = new_value
       # weights[int(selected_param[2:])-1] = new_value
@@ -353,12 +352,12 @@ def update_params():
       display_weights()
 
     elif selected_param.startswith('HW'):
-      weights[int(selected_param[2:]) + layer_sizes[0]*layer_sizes[1]] = new_value  
+      weights[int(selected_param[2:])-1 + layer_sizes[0]*layer_sizes[1]] = new_value  
       weights_list = construct_weights_from_values(weights,layer_sizes[0],layer_sizes[1],layer_sizes[2])
       display_weights()
 
     elif selected_param.startswith('IB'):
-      biases[layer_sizes[1]][int(selected_param[2:])] = new_value
+      biases[layer_sizes[1]][int(selected_param[2:])-1] = new_value
       flattened_biases = np.append(biases[layer_sizes[1]],biases[layer_sizes[2] if layer_sizes[1]>1 else 'ob'])
       display_biases()
 
@@ -376,15 +375,15 @@ def update_slider_value(event):
     global weights, biases, flattened_biases, layer_sizes
     selected_param = paramdd.get()
     if selected_param.startswith('IW'):
-      input_idx = int(selected_param[2:3])#changed
-      hidden_idx = int(selected_param[-1])#changed
+      input_idx = int(selected_param[2:3])-1#changed
+      hidden_idx = int(selected_param[-1])-1#changed
       flat_index = input_idx * layer_sizes[1] + hidden_idx
       new_value = weights[flat_index]
         # new_value = weights[int(selected_param[2:]) - 1]
     elif selected_param.startswith('HW'):
-        new_value = weights[int(selected_param[2:]) + layer_sizes[0] * layer_sizes[1]]
+        new_value = weights[int(selected_param[2:])-1 + layer_sizes[0] * layer_sizes[1]]
     elif selected_param.startswith('IB'):
-        new_value = biases[layer_sizes[1]][int(selected_param[2:])]
+        new_value = biases[layer_sizes[1]][int(selected_param[2:])-1]
     else:  
         new_value = biases[layer_sizes[2] if layer_sizes[1]>1 else 'ob'][0]
 
