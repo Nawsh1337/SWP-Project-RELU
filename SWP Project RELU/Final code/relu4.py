@@ -569,13 +569,13 @@ def update_output():
 x3_var = tk.DoubleVar(value=0)
 
 def update_x3_value(value=None):
-    global inputs, x1_grid, x2_grid
+    global inputs, x1_grid, x2_grid,x3_fixed
     if value is not None:
         x3_fixed = float(value)
         x3_value_label.config(text=f"x3: {x3_fixed:.1f}")#Update the x3 value label
     else:
         x3_fixed = x3_var.get()
-    
+    arbitrary_inputs[2] = x3_fixed
     inputs = np.c_[x1_grid.ravel(), x2_grid.ravel(), np.full_like(x1_grid.ravel(), x3_fixed)]
     display_weights()
     update_output()
@@ -589,7 +589,7 @@ x3_value_label.place(relx=0.05, rely=0.62)
 
 
 
-
+update_params()
 if __name__ == '__main__':
   root.mainloop()
   print("\nEnded Successfully!")
