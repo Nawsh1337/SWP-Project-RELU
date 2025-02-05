@@ -10,6 +10,9 @@ import customtkinter
 import csv
 import model_preprocess as mp
 from tkinter import Toplevel#for new window for models
+import re
+#capture x and y where user clicked
+
 
 arbitrary_inputs = [0,0,0]#x1,x2,x3 for prediction
 layer_sizes = [3,4,1]
@@ -25,6 +28,8 @@ params = (
 
 
 def draw_architecture():
+  global info_label
+  info_label.config(text="Info: N/A")
   # print(layer_sizes)
   # print(weights)
   # print(weights_list)
@@ -50,12 +55,44 @@ gs = fig.add_gridspec(1, 2, width_ratios=[3, 1])  #adjust width ratios
 
 results = fig.add_subplot(121, projection='3d')
 
+#extract position of where the user clicks
+def on_click(event):
+  global callback_id
+  if event.inaxes:
+    coord_text = results.format_coord(event.xdata, event.ydata)
+      
+    #extract numeric values from coord_text using regex
+    match = re.findall(r"[-+]?\d*\.\d+|\d+", coord_text)
+      
+    if len(match) >= 2:
+      x_raw = float(match[0])
+      y_raw = float(match[1])
+
+      # Apply scaling
+      x_scaled = (x_raw * 20) - 10
+      y_scaled = (y_raw * 20) - 10
+      x_scaled *= 1.1
+      y_scaled *= 1.1
+      print('x: ',x_scaled, '   y: ',y_scaled)
+      if x_scaled < 0 or y_scaled < 0:
+        arbitrary_inputs[0] = 0 if x_scaled < 0 else x_scaled
+        arbitrary_inputs[1] = 0 if y_scaled < 0 else y_scaled
+        info_label.config(text="Info: X1 and/or X2 was set to 0.")
+      else:
+        arbitrary_inputs[0] = x_scaled
+        arbitrary_inputs[1] = y_scaled
+        info_label.config(text="Info: Valid X1 and X2 provided.")
+      arbitrary_inputs[2] = x3_fixed
+      label_x1.config(text=f"X1: {arbitrary_inputs[0]:.1f}")
+      label_x2.config(text=f"X2: {arbitrary_inputs[1]:.1f}")
+      forward(arbitrary_inputs)
+
 canvas = FigureCanvasTkAgg(fig, master=root)#allows using matplotlib plot in tkinter
 canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 toolbar = NavigationToolbar2Tk(canvas, root, pack_toolbar=False)
 toolbar.update()
 toolbar.pack(side=tk.BOTTOM, fill=tk.X)
-
+callback_id = canvas.mpl_connect("button_press_event",on_click)
 
 def display_weights():
   global fig,params,weights_list,weights
@@ -67,7 +104,7 @@ def display_weights():
   bar.barh(y_pos, np.array(weights), align='center')
   bar.set_yticks(y_pos, labels=params_without_biases)
   bar.invert_yaxis()
-  bar.set_xlim(-10, 10)
+  bar.set_xlim(-1*np.max(np.abs(weights)), np.max(np.abs(weights)))
   bar.axvline(x=0, color='red', linestyle='--', linewidth=1)
   bar.set_xlabel('Weights')
   bar.set_title('Parameter Weights Visualization')
@@ -87,7 +124,7 @@ def display_biases():
   bar.barh(y_pos, np.array(flattened_biases), align='center')
   bar.set_yticks(y_pos, labels=biasparams)
   bar.invert_yaxis()
-  bar.set_xlim(-10, 10)
+  bar.set_xlim(-1*np.max(np.abs(flattened_biases)), np.max(np.abs(flattened_biases)))
   bar.axvline(x=0, color='red', linestyle='--', linewidth=1)
   bar.set_xlabel('Biases')
   bar.set_title('Parameter Biases Visualization')
@@ -96,6 +133,7 @@ def display_biases():
 
 
 def update_hidden_layer_neurons():
+  info_label.config(text="Info: N/A")
   new_hidden_neurons = hiddendd.get()
   global layer_sizes,weights,weights_list,biases,flattened_biases,params
   layer_sizes[1] = int(new_hidden_neurons)
@@ -125,7 +163,7 @@ def update_hidden_layer_neurons():
 
 
 def importer(model_name = None):
-    
+    info_label.config(text="Info: N/A")
     if model_name == None:
       file_path = filedialog.askopenfilename(filetypes=[("CSV files", "*.csv")])
       
@@ -165,7 +203,7 @@ def importer(model_name = None):
                 np.array(output_weights).reshape(layer_sizes[1], layer_sizes[2])
             ]
 
-            global weights
+            global weights,biases
             weights = np.concatenate([weights_list[0].flatten(), weights_list[1].flatten()])
 
             biases = {
@@ -182,6 +220,8 @@ def importer(model_name = None):
             ["OB"])
 
             paramdd.configure(values=params)
+            paramdd.set(params[0])
+            paramdd.event_generate("<<ComboboxSelected>>")
             display_weights()
             update_output()
             forward()
@@ -280,6 +320,7 @@ pretrained_model_button.place(relx=0.05, rely=0.4)
 
 
 def exporter():
+  info_label.config(text="Info: N/A")
   file_path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV files", "*.csv")])
   if not file_path:
       messagebox.showerror("Error", "No file selected.")
@@ -339,6 +380,7 @@ param_select_label = tk.Label(root, text="Select Weight/Bias to Edit",background
 param_select_label.place(relx = 0.1, rely = 0.87)
 
 def update_params():
+    info_label.config(text="Info: N/A")
     global weights,biases,flattened_biases,weights_list,layer_sizes
     selected_param = paramdd.get()
     new_value = slider.get()
@@ -444,10 +486,15 @@ inputs = np.c_[x1_grid.ravel(), x2_grid.ravel(), np.full_like(x1_grid.ravel(), x
 
 
 #forward pass / prediction function
-def forward():
-  x1 = float(entry_x1.get())
-  x2 = float(entry_x2.get())
-  x3 = float(entry_x3.get())
+def forward(ab = None):
+  if ab:
+    x1 = ab[0]
+    x2 = ab[1]
+    x3 = ab[2]
+  else:
+     x1 = arbitrary_inputs[0]
+     x2 = arbitrary_inputs[1]
+     x3 = arbitrary_inputs[2]
   inputs = np.array([[x1, x2, x3]])
   weights1 = np.zeros((layer_sizes[0], layer_sizes[1]))
   biases1 = np.zeros(layer_sizes[1])
@@ -471,26 +518,19 @@ def forward():
   output = relu_network(inputs, weights1, biases1, weights2, biases2)
   output_label.config(text=f"Output: {output[0][0]:.4f}")
 
-label_x1 = tk.Label(root, text="x1")
+label_x1 = tk.Label(root, text="X1",background='yellow')
 label_x1.place(relx=0.05, rely=0.5)
-entry_x1 = tk.Entry(root)
-entry_x1.insert(0, "0")
-entry_x1.place(relx=0.05, rely=0.53)
+label_x1.config(text=f"X1: {arbitrary_inputs[0]:.1f}")
 
-label_x2 = tk.Label(root, text="x2")
-label_x2.place(relx=0.05, rely=0.57)
-entry_x2 = tk.Entry(root)
-entry_x2.insert(0, "0")
-entry_x2.place(relx=0.05, rely=0.6)
+label_x2 = tk.Label(root, text="X2",background='yellow')
+label_x2.place(relx=0.05, rely=0.54)
+label_x2.config(text=f"X2: {arbitrary_inputs[1]:.1f}")
 
-label_x3 = tk.Label(root, text="x3")
-label_x3.place(relx=0.05, rely=0.64)
-entry_x3 = tk.Entry(root)
-entry_x3.insert(0, "0")
-entry_x3.place(relx=0.05, rely=0.67)
-
-output_label = tk.Label(root, text="Output: ",background='green')
+output_label = tk.Label(root, text="Output: ",background='yellow')
 output_label.place(relx=0.05, rely=0.75)
+
+info_label = tk.Label(root, text="Info: N/A",background='yellow')
+info_label.place(relx=0.05, rely=0.8)
 
 
 
@@ -542,10 +582,10 @@ def update_x3_value(value=None):
     forward()
 x3_slider = customtkinter.CTkSlider(master=root, from_=-10, to=10, command=lambda value: update_x3_value(value))
 x3_slider.set(0)
-x3_slider.place(relx=0.63, rely=0.88)
+x3_slider.place(relx=0.05, rely=0.66)
 
 x3_value_label = tk.Label(root, text="x3: 0.0", background='yellow')
-x3_value_label.place(relx=0.63, rely=0.85)
+x3_value_label.place(relx=0.05, rely=0.62)
 
 
 
