@@ -181,8 +181,6 @@ class DrawNN():
     def draw(self):
         widest_layer = max(self.neural_network)
         network = NeuralNetwork(widest_layer, self.biases)
-        print(self.biases)
-        input()
         if self.neural_network == [3,3,1]:
             for i,l in enumerate(self.neural_network):
                 if i==0:
