@@ -18,8 +18,7 @@ class ReLU_MaxNN2(nn.Module):
 input_size = 3
 hidden_size = None
 
-
-path = 'SWP Project RELU\Final code\Functions\Models'
+path = 'SWP-Project-RELU\SWP Project RELU\Final code\Functions\Models'
 
 # print(os.listdir(path))
 
@@ -29,11 +28,11 @@ params  = None
 
 def model_weights_loader(model = 'max'):
     if model == 'max':
-        hidden = 3
-        params = np.load(os.path.join(path, 'max_3_weights.npy'))
+        hidden = 10
+        params = np.load(os.path.join(path, 'max_10_weights.npy'))
     elif model == 'avg':
-        hidden = 3
-        params = np.load(os.path.join(path, 'avg_3_weights.npy'))
+        hidden = 2
+        params = np.load(os.path.join(path, 'avg_2_weights.npy'))
     elif model == 'other':
         file_path = filedialog.askopenfilename(filetypes=[("Numpy Files", "*.npy")])
         if not file_path:
@@ -69,7 +68,7 @@ def model_weights_loader(model = 'max'):
         params = np.load(file_path)
         hidden = int((len(params) - 1)/5)
     else:#min
-        hidden = 5
-        params = np.load(os.path.join(path, 'min_5_weights.npy'))
+        hidden = 3
+        params = np.load(os.path.join(path, 'min_3_weights.npy'))
     return hidden, params
 # model_weights_loader('avg')

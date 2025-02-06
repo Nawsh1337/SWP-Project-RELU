@@ -85,8 +85,10 @@ def on_click(event):
         arbitrary_inputs[1] = y_scaled
         info_label.config(text="Info: Valid X1 and X2 provided.")
       arbitrary_inputs[2] = x3_fixed
+      print(x3_fixed)
       label_x1.config(text=f"X1: {arbitrary_inputs[0]:.1f}")
       label_x2.config(text=f"X2: {arbitrary_inputs[1]:.1f}")
+      print(arbitrary_inputs)
       forward(arbitrary_inputs)
 
 canvas = FigureCanvasTkAgg(fig, master=root)#allows using matplotlib plot in tkinter
@@ -391,10 +393,14 @@ def update_params():
     info_label.config(text="Info: N/A")
     global weights,biases,flattened_biases,weights_list,layer_sizes
     selected_param = paramdd.get()
+    hidden_idx = None
     new_value = slider.get()
     if selected_param.startswith('IW'):
       input_idx = int(selected_param[2:3])-1#changed
-      hidden_idx = int(selected_param[-1])-1#changed
+      if len(selected_param) == 5:#special case for 10 hidden neurons e.g IW310, input 3 hidden 10 makes length 5 instead of 4
+        hidden_idx = 9#changed
+      else:
+         hidden_idx = int(selected_param[-1])-1
       flat_index = input_idx * layer_sizes[1] + hidden_idx
       weights[flat_index] = new_value
       # weights[int(selected_param[2:])-1] = new_value
@@ -424,9 +430,13 @@ def slider_event(value):
 def update_slider_value(event):
     global weights, biases, flattened_biases, layer_sizes
     selected_param = paramdd.get()
+    hiddden_idx = None
     if selected_param.startswith('IW'):
       input_idx = int(selected_param[2:3])-1#changed
-      hidden_idx = int(selected_param[-1])-1#changed
+      if len(selected_param) == 5:#special case for 10 hidden neurons e.g IW310, input 3 hidden 10 makes length 5 instead of 4
+        hidden_idx = 9#changed
+      else:
+         hidden_idx = int(selected_param[-1])-1
       flat_index = input_idx * layer_sizes[1] + hidden_idx
       new_value = weights[flat_index]
         # new_value = weights[int(selected_param[2:]) - 1]
@@ -495,6 +505,7 @@ inputs = np.c_[x1_grid.ravel(), x2_grid.ravel(), np.full_like(x1_grid.ravel(), x
 
 #forward pass / prediction function
 def forward(ab = None):
+  x1,x2,x3 = None,None,None
   if ab:
     x1 = ab[0]
     x2 = ab[1]
@@ -503,6 +514,7 @@ def forward(ab = None):
      x1 = arbitrary_inputs[0]
      x2 = arbitrary_inputs[1]
      x3 = arbitrary_inputs[2]
+  
   inputs = np.array([[x1, x2, x3]])
   weights1 = np.zeros((layer_sizes[0], layer_sizes[1]))
   biases1 = np.zeros(layer_sizes[1])
@@ -522,6 +534,10 @@ def forward(ab = None):
   for x in range(layer_sizes[1]):
      biases1[x] = biases[layer_sizes[1]][x]
   
+  print("IN FORWARD")
+  print(x1,x2,x3)
+  print(weights1,weights2)
+  print(biases1,biases2)
   biases2[0] = biases[layer_sizes[2] if layer_sizes[1]>1 else 'ob'][0]
   output = relu_network(inputs, weights1, biases1, weights2, biases2)
   output_label.config(text=f"Output: {output[0][0]:.4f}")
