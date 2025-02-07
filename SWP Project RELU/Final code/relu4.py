@@ -76,14 +76,14 @@ def on_click(event):
       x_scaled *= 1.1
       y_scaled *= 1.1
       print('x: ',x_scaled, '   y: ',y_scaled)
-      # if x_scaled < 0 or y_scaled < 0:
+      if x_scaled < 0 or y_scaled < 0:
       #   arbitrary_inputs[0] = 0 if x_scaled < 0 else x_scaled
       #   arbitrary_inputs[1] = 0 if y_scaled < 0 else y_scaled
-      #   info_label.config(text="Info: X1 and/or X2 was set to 0.")
-      # else:
+        info_label.config(text="WARNING: Prediction Might Be Incorrect Due to Negative Input.")
+      else:
       #   arbitrary_inputs[0] = x_scaled
       #   arbitrary_inputs[1] = y_scaled
-        # info_label.config(text="Info: Valid X1 and X2 provided.")
+        info_label.config(text="Info: Valid X1 and X2 provided.")
       arbitrary_inputs[0] = x_scaled
       arbitrary_inputs[1] = y_scaled
       arbitrary_inputs[2] = x3_fixed
@@ -140,6 +140,7 @@ def display_biases():
 
 def update_hidden_layer_neurons():
   info_label.config(text="Info: N/A")
+  title_label.config(text='Custom Model')
   new_hidden_neurons = hiddendd.get()
   global layer_sizes,weights,weights_list,biases,flattened_biases,params
   layer_sizes[1] = int(new_hidden_neurons)
@@ -190,7 +191,8 @@ def importer(model_name = None):
                 layer_sizes[1] = new_hidden_neurons
                 values = list(map(float, next(reader)))
             else:#if loaded model is being displayed
-               new_hidden_neurons,values = mp.model_weights_loader(model_name)
+               model_text,new_hidden_neurons,values = mp.model_weights_loader(model_name)
+               title_label.config(text = model_text)
                layer_sizes[1] = new_hidden_neurons
             # print(new_hidden_neurons,values)
 
@@ -564,7 +566,8 @@ output_label.place(relx=0.05, rely=0.75)
 info_label = tk.Label(root, text="Info: N/A",background='yellow')
 info_label.place(relx=0.05, rely=0.8)
 
-
+title_label = tk.Label(root, text="Custom Model",background='yellow',font=("Arial", 30))
+title_label.place(relx=0.4, rely=0.04,width=300, height=50)
 
 def update_output():
   if len(fig.axes) > 1:

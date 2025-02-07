@@ -25,14 +25,16 @@ path = 'SWP-Project-RELU\SWP Project RELU\Final code\Functions\Models'
 #user will select the model and it will be loaded.
 
 params  = None
-
+model_text = ''
 def model_weights_loader(model = 'max'):
     if model == 'max':
-        hidden = 10
-        params = np.load(os.path.join(path, 'max_10_weights.npy'))
+        params = np.load(os.path.join(path, 'training_weights_max.npy'))
+        hidden = int((len(params) - 1)/5)
+        model_text = 'Max. Model'
     elif model == 'avg':
-        hidden = 2
-        params = np.load(os.path.join(path, 'avg_2_weights.npy'))
+        params = np.load(os.path.join(path, 'training_weights_avg.npy'))
+        hidden = int((len(params) - 1)/5)
+        model_text = 'Avg. Model'
     elif model == 'other':
         file_path = filedialog.askopenfilename(filetypes=[("Numpy Files", "*.npy")])
         if not file_path:
@@ -67,8 +69,10 @@ def model_weights_loader(model = 'max'):
 # so 5x = param length - 1 
         params = np.load(file_path)
         hidden = int((len(params) - 1)/5)
+        model_text = 'Custom Model'
     else:#min
-        hidden = 3
-        params = np.load(os.path.join(path, 'min_3_weights.npy'))
-    return hidden, params
+        params = np.load(os.path.join(path, 'training_weights_min.npy'))
+        hidden = int((len(params) - 1)/5)
+        model_text = 'Min. Model'
+    return model_text,hidden, params
 # model_weights_loader('avg')
