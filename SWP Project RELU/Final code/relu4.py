@@ -76,14 +76,16 @@ def on_click(event):
       x_scaled *= 1.1
       y_scaled *= 1.1
       print('x: ',x_scaled, '   y: ',y_scaled)
-      if x_scaled < 0 or y_scaled < 0:
-        arbitrary_inputs[0] = 0 if x_scaled < 0 else x_scaled
-        arbitrary_inputs[1] = 0 if y_scaled < 0 else y_scaled
-        info_label.config(text="Info: X1 and/or X2 was set to 0.")
-      else:
-        arbitrary_inputs[0] = x_scaled
-        arbitrary_inputs[1] = y_scaled
-        info_label.config(text="Info: Valid X1 and X2 provided.")
+      # if x_scaled < 0 or y_scaled < 0:
+      #   arbitrary_inputs[0] = 0 if x_scaled < 0 else x_scaled
+      #   arbitrary_inputs[1] = 0 if y_scaled < 0 else y_scaled
+      #   info_label.config(text="Info: X1 and/or X2 was set to 0.")
+      # else:
+      #   arbitrary_inputs[0] = x_scaled
+      #   arbitrary_inputs[1] = y_scaled
+        # info_label.config(text="Info: Valid X1 and X2 provided.")
+      arbitrary_inputs[0] = x_scaled
+      arbitrary_inputs[1] = y_scaled
       arbitrary_inputs[2] = x3_fixed
       print(x3_fixed)
       label_x1.config(text=f"X1: {arbitrary_inputs[0]:.1f}")
@@ -489,6 +491,12 @@ flattened_biases = np.append(biases[layer_sizes[1]],biases[layer_sizes[2] if lay
 def relu(x):
     return np.maximum(0, x)
 def relu_network(x, weights1, biases1, weights2, biases2):#calculate output
+    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    print(weights1)
+    print(weights2)
+    print(biases1)
+    print(biases2)
+    print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     hidden_input = np.dot(x, weights1) + biases1
     hidden_output = relu(hidden_input)
     final_input = np.dot(hidden_output, weights2) + biases2
