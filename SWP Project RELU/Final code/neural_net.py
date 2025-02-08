@@ -63,13 +63,14 @@ class Layer():
         y_adjustment = self.neuron_radius * cos(angle)
 
         # assign colors to lines depending on the sign of the weight
-        color = Tableau_10.mpl_colors[0]
-        if weight > 0:
-            color = Tableau_10.mpl_colors[1]
+        color = Tableau_10.mpl_colors[7]
+        
+        if abs(weight) > 0.2:
+            color = Tableau_10.mpl_colors[3]
 
         # assign different linewidths to lines depending on the size of the weight
         abs_weight = abs(weight)
-        linewidth = 1
+        linewidth = 2
 
         # draw the weights and adjust the labels of weights to avoid overlapping
         if abs_weight > 0.0:
