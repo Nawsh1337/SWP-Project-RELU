@@ -77,13 +77,15 @@ def on_click(event):
       y_scaled *= 1.1
       print('x: ',x_scaled, '   y: ',y_scaled)
       if x_scaled < 0 or y_scaled < 0:
-        arbitrary_inputs[0] = 0 if x_scaled < 0 else x_scaled
-        arbitrary_inputs[1] = 0 if y_scaled < 0 else y_scaled
-        info_label.config(text="Info: X1 and/or X2 was set to 0.")
+      #   arbitrary_inputs[0] = 0 if x_scaled < 0 else x_scaled
+      #   arbitrary_inputs[1] = 0 if y_scaled < 0 else y_scaled
+        info_label.config(text="WARNING: Prediction Might Be Incorrect Due to Negative Input.")
       else:
-        arbitrary_inputs[0] = x_scaled
-        arbitrary_inputs[1] = y_scaled
+      #   arbitrary_inputs[0] = x_scaled
+      #   arbitrary_inputs[1] = y_scaled
         info_label.config(text="Info: Valid X1 and X2 provided.")
+      arbitrary_inputs[0] = x_scaled
+      arbitrary_inputs[1] = y_scaled
       arbitrary_inputs[2] = x3_fixed
       print(x3_fixed)
       label_x1.config(text=f"X1: {arbitrary_inputs[0]:.1f}")
@@ -138,6 +140,7 @@ def display_biases():
 
 def update_hidden_layer_neurons():
   info_label.config(text="Info: N/A")
+  title_label.config(text='Custom Model')
   new_hidden_neurons = hiddendd.get()
   global layer_sizes,weights,weights_list,biases,flattened_biases,params
   layer_sizes[1] = int(new_hidden_neurons)
@@ -188,7 +191,8 @@ def importer(model_name = None):
                 layer_sizes[1] = new_hidden_neurons
                 values = list(map(float, next(reader)))
             else:#if loaded model is being displayed
-               new_hidden_neurons,values = mp.model_weights_loader(model_name)
+               model_text,new_hidden_neurons,values = mp.model_weights_loader(model_name)
+               title_label.config(text = model_text)
                layer_sizes[1] = new_hidden_neurons
             # print(new_hidden_neurons,values)
 
@@ -239,7 +243,7 @@ def importer(model_name = None):
         messagebox.showerror("Error", f"An error occurred while importing: {str(e)}")
 
 
-import_button = tk.Button(root, text='Import', bd='5',command= importer)
+import_button = tk.Button(root, text='Import CSV', bd='5',command= importer)
 import_button.place(relx = 0.05, rely = 0.2)
 
 ##### Opens new window for selecting the model
@@ -267,7 +271,7 @@ def open_model_window():
     btn4.pack(pady=10)
 
 pretrained_model_button = tk.Button(root, text="Display Model", bd=5, command=open_model_window)
-pretrained_model_button.place(relx=0.05, rely=0.4)
+pretrained_model_button.place(relx=0.05, rely=0.1)
 
 # ##################For prediction on chosen model
 # def open_model_predict_window():
@@ -348,7 +352,7 @@ def exporter():
       writer.writerow([layer_sizes[1]])
       writer.writerow(all_values)
 
-export_button = tk.Button(root, text='Export', bd='5',command= exporter)
+export_button = tk.Button(root, text='Export CSV', bd='5',command= exporter)
 export_button.place(relx = 0.05, rely = 0.3)
 
 
@@ -377,7 +381,8 @@ hiddenset_button.bind('<Leave>',on_leave)
 
 # Visualize Architecure Button
 vizb = tk.Button(root, text='Draw Architecture', bd='5',command=draw_architecture,highlightbackground='black',highlightthickness=2)
-vizb.place(relx = 0.1, rely = 0.1)
+# vizb.place(relx = 0.05, rely = 0.1)
+vizb.place(relx = 0.05, rely = 0.4)
 orig_color = vizb.cget("background")
 vizb.bind('<Enter>',on_enter)
 vizb.bind('<Leave>',on_leave)
@@ -489,6 +494,12 @@ flattened_biases = np.append(biases[layer_sizes[1]],biases[layer_sizes[2] if lay
 def relu(x):
     return np.maximum(0, x)
 def relu_network(x, weights1, biases1, weights2, biases2):#calculate output
+    # print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    # print(weights1)
+    # print(weights2)
+    # print(biases1)
+    # print(biases2)
+    # print("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
     hidden_input = np.dot(x, weights1) + biases1
     hidden_output = relu(hidden_input)
     final_input = np.dot(hidden_output, weights2) + biases2
@@ -540,14 +551,14 @@ def forward(ab = None):
   print(biases1,biases2)
   biases2[0] = biases[layer_sizes[2] if layer_sizes[1]>1 else 'ob'][0]
   output = relu_network(inputs, weights1, biases1, weights2, biases2)
-  output_label.config(text=f"Output: {output[0][0]:.4f}")
+  output_label.config(text=f"Output: {output[0][0]:.1f}")
 
 label_x1 = tk.Label(root, text="X1",background='yellow')
-label_x1.place(relx=0.05, rely=0.5)
+label_x1.place(relx=0.05, rely=0.54)
 label_x1.config(text=f"X1: {arbitrary_inputs[0]:.1f}")
 
 label_x2 = tk.Label(root, text="X2",background='yellow')
-label_x2.place(relx=0.05, rely=0.54)
+label_x2.place(relx=0.05, rely=0.58)
 label_x2.config(text=f"X2: {arbitrary_inputs[1]:.1f}")
 
 output_label = tk.Label(root, text="Output: ",background='yellow')
@@ -556,7 +567,8 @@ output_label.place(relx=0.05, rely=0.75)
 info_label = tk.Label(root, text="Info: N/A",background='yellow')
 info_label.place(relx=0.05, rely=0.8)
 
-
+title_label = tk.Label(root, text="Custom Model",background='yellow',font=("Arial", 30))
+title_label.place(relx=0.4, rely=0.04,width=300, height=50)
 
 def update_output():
   if len(fig.axes) > 1:
@@ -596,7 +608,7 @@ def update_x3_value(value=None):
     global inputs, x1_grid, x2_grid,x3_fixed
     if value is not None:
         x3_fixed = float(value)
-        x3_value_label.config(text=f"x3: {x3_fixed:.1f}")#Update the x3 value label
+        x3_value_label.config(text=f"X3: {x3_fixed:.1f}")#Update the x3 value label
     else:
         x3_fixed = x3_var.get()
     arbitrary_inputs[2] = x3_fixed
@@ -608,7 +620,7 @@ x3_slider = customtkinter.CTkSlider(master=root, from_=-10, to=10, command=lambd
 x3_slider.set(0)
 x3_slider.place(relx=0.05, rely=0.66)
 
-x3_value_label = tk.Label(root, text="x3: 0.0", background='yellow')
+x3_value_label = tk.Label(root, text="X3: 0.0", background='yellow')
 x3_value_label.place(relx=0.05, rely=0.62)
 
 
