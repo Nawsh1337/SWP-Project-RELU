@@ -70,7 +70,7 @@ def on_click(event):
       x_raw = float(match[0])
       y_raw = float(match[1])
 
-      # Apply scaling
+      #apply scaling
       x_scaled = (x_raw * 20) - 10
       y_scaled = (y_raw * 20) - 10
       x_scaled *= 1.1
@@ -198,7 +198,7 @@ def importer(model_name = None):
 
             hidden_weights_count = layer_sizes[0] * layer_sizes[1]
             hidden_bias_count = layer_sizes[1]
-            output_weights_count = layer_sizes[1] * layer_sizes[2]
+            output_weights_count = layer_sizes[1] * layer_sizes[2] 
 
             expected_total = hidden_weights_count + hidden_bias_count + output_weights_count + 1
             if len(values) != expected_total:
@@ -216,12 +216,15 @@ def importer(model_name = None):
 
             global weights,biases
             weights = np.concatenate([weights_list[0].flatten(), weights_list[1].flatten()])
+            print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
             print(weights)
+            
             biases = {
                 layer_sizes[1]: np.array(hidden_biases),#Hidden layer biases
                 layer_sizes[2] if layer_sizes[1]>1 else 'ob': np.array([output_bias])#Output layer bias
             }
-
+            print(biases)
+            print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
             flattened_biases = np.append(biases[layer_sizes[1]], biases[layer_sizes[2] if layer_sizes[1]>1 else 'ob'])
 
             params = (
