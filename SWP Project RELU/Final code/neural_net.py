@@ -1,3 +1,4 @@
+#File runs when Draw Architecture button is clicked and it displays the model architecture
 from matplotlib import pyplot
 from math import cos, sin, atan
 from palettable.tableau import Tableau_10
