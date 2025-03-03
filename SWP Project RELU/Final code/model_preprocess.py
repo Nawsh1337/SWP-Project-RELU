@@ -19,7 +19,7 @@ class ReLU_MaxNN2(nn.Module):
 input_size = 3
 hidden_size = None
 
-path = 'SWP-Project-RELU\SWP Project RELU\Final code\Functions\Models'
+path = 'SWP-Project-RELU\SWP Project RELU\Final code\Functions\Model Weights'
 
 # print(os.listdir(path))
 
