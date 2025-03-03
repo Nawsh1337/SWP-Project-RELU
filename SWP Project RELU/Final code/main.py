@@ -1,3 +1,4 @@
+#this is the main file, run this only
 import tkinter as tk
 from tkinter import ttk#enables drop-down lists
 from tkinter import messagebox,filedialog 
